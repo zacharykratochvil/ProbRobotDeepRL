@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot name="ball">
+    <material name="orange">
+        <color rgba="255 125 0 1"/>
+    </material>
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <sphere radius="0.25"/>
+            </geometry>
+            <material name="orange"/>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="0.25"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.25"/>
+           <inertia ixx="0.00625" ixy="0.0" ixz="0.0" iyy="0.00625" iyz="0.0" izz="0.00625"/>
+        </inertial>
+    </link>
+</robot>
