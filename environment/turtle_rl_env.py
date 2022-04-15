@@ -2,14 +2,14 @@ import gym
 import numpy as np
 import math
 import pybullet as p
-from simple_driving.resources.car import Car
-from simple_driving.resources.plane import Plane
-from simple_driving.resources.goal import Goal
-from simple_driving.resources.walls import Walls
+from .ball import Ball
+from .plane import Plane
+from .turtlebot import Car
+from .walls import Walls
 import matplotlib.pyplot as plt
 from typing import Generic
 
-class TurtleRLENV(gym.Env):
+class TurtleRLEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, *args, **kwargs):
@@ -89,7 +89,7 @@ class TurtleRLENV(gym.Env):
         self.done = False
 
         # Visual element of the goal
-        Goal(self.client, self.goal)
+        Ball(self.client, self.goal)
 
         # Get observation to return
         car_ob = self.car.get_observation()

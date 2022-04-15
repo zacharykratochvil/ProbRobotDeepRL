@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot name="ball">
     <material name="orange">
-        <color rgba="255 125 0 1"/>
+        <color rgba="10 1 0 1"/>
     </material>
     <link name="base_link">
         <visual>

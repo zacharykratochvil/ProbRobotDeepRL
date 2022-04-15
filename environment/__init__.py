@@ -1,7 +1,7 @@
 import gym
-from .turtle_rl_env import TurtleRLENV
+from .turtle_rl_env import TurtleRLEnv
 
 gym.envs.register(
-     id='TurtleRLENV-v0',
-     entry_point='environment:TurtleRLENV',
+     id='TurtleRLEnv-v0',
+     entry_point='environment:TurtleRLEnv',
 )

@@ -5,7 +5,7 @@ import numpy as np
 
 class Walls:
     def __init__(self, client):
-        f_name = os.path.join(os.path.dirname(__file__), 'wall.urdf')
+        f_name = os.path.join(os.path.dirname(__file__), "structures", 'wall.urdf')
 
         # load and remove urdf to get its length
         test_wall = p.loadURDF(fileName=f_name,
