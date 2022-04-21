@@ -14,12 +14,9 @@ class TurtleRLEnv(gym.Env):
 
     def __init__(self, *args, **kwargs):
         super(Generic,self).__init__()
-        self.action_space = gym.spaces.box.Box(
-            low=np.array([0, -.6], dtype=np.float32),
-            high=np.array([1, .6], dtype=np.float32))
-        self.observation_space = gym.spaces.box.Box(
-            low=np.array([-10, -10, -1, -1, -5, -5, -10, -10], dtype=np.float32),
-            high=np.array([10, 10, 1, 1, 5, 5, 10, 10], dtype=np.float32))
+        self.action_space = gym.spaces.Discrete(4)
+        self.observation_space = gym.spaces.box.Box(low=0,
+                                high=255, shape=(1,15000), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
         if kwargs["env_type"] == "gui":
@@ -41,7 +38,7 @@ class TurtleRLEnv(gym.Env):
         # Feed action to the car and get observation of car's state
         self.car.apply_action(action)
         p.stepSimulation()
-        car_ob = self.car.get_observation()
+        car_ob, _, _ = self.car.get_observation()
 
         # Compute reward as L2 change in distance to goal
         dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
@@ -63,10 +60,9 @@ class TurtleRLEnv(gym.Env):
 
         self.render('gui')
         img_array = self.rendered_img.make_image(None,magnification=1/3.69)
-        img_array = img_array[0][0:50,0:100,1]
-        return img_array, reward, self.done, dict()
-        #ob = np.array(car_ob + self.goal, dtype=np.float32)
-        #return ob, reward, self.done, dict()
+        img_array = img_array[0][0:50,0:100,0:3] # crop out self and alpha
+        observation = np.reshape(img_array,[1,-1])
+        return observation, reward, self.done, dict()
 
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
@@ -92,15 +88,15 @@ class TurtleRLEnv(gym.Env):
         Ball(self.client, self.goal)
 
         # Get observation to return
-        car_ob = self.car.get_observation()
+        pos, ori, vel = self.car.get_observation()
 
-        self.prev_dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
-                                           (car_ob[1] - self.goal[1]) ** 2))
-        #return np.array(car_ob + self.goal, dtype=np.float32)
+        self.prev_dist_to_goal = math.sqrt(((pos[0] - self.goal[0]) ** 2 +
+                                           (pos[1] - self.goal[1]) ** 2))
+        
         self.render('gui')
         img_array = self.rendered_img.make_image(None,magnification=1/3.69)
-        img_array = img_array[0][0:50,0:100,1]
-        return img_array
+        img_array = img_array[0][0:50,0:100,0:3] # crop out self and alpha
+        return np.reshape(img_array,[1,-1])
 
     def render(self, mode='human'):
         if self.rendered_img is None:

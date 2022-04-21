@@ -27,32 +27,31 @@ class Car:
         return self.car, self.client
 
     def apply_action(self, action):
-        # Expects action to be two dimensional
-        throttle1, throttle2 = action
+        # Expects action to be an integer [0, 3]
 
-        # Clip throttle and steering angle to reasonable values
-        throttle1 = min(max(throttle1, 0), 1)
-        throttle2 = min(max(throttle2, 0), 1)
-        throttle = np.array([throttle1, throttle2])
+        # get info about car's whereabouts
+        pos, qat = p.getBasePositionAndOrientation(self.car, self.client)
+        pos = np.array(pos)
+        _, unit, vel = self.get_observation()
+        unit = np.array([unit[0], unit[1], 0])
+        ang = p.getEulerFromQuaternion(qat)
 
-        # Calculate drag / mechanical resistance ourselves
-        # Using velocity control, as torque control requires precise models
-        friction = -self.joint_speed * (self.joint_speed * self.c_drag +
-                                        self.c_rolling)
-        acceleration = self.c_throttle * throttle + friction
-        # Each time step is 1/240 of a second
-        self.joint_speed = self.joint_speed + 1/30 * acceleration
-        self.joint_speed = np.max(np.vstack([self.joint_speed, np.zeros(2)]),0)
+        # teleport car to given coords
+        def teleport(new_pos, new_ang):
+            p.resetBasePositionAndOrientation(self.car,
+                        new_pos, new_ang, self.client)
 
-        # Set the velocity of the wheel joints directly
-        for i in range(len(self.drive_joints)):
-            p.setJointMotorControlArray(
-                bodyUniqueId=self.car,
-                jointIndices=[self.drive_joints[i]],
-                controlMode=p.VELOCITY_CONTROL,
-                targetVelocities=[self.joint_speed[i]],
-                forces=[1.2],
-                physicsClientId=self.client)
+        # define discrete actions
+        if action == 0: # forward
+            teleport(pos + unit, qat)
+        elif action == 1: # backward
+            teleport(pos - unit, qat)
+        elif action == 2: # turn left
+            pass
+        elif action == 3: # turn right
+            pass
+        else:
+            raise Exception(f"{action} is not a valid action, must be integer [0,3]")
 
     def get_observation(self):
         # Get the position and orientation of the car in the simulation
@@ -65,6 +64,6 @@ class Car:
         vel = p.getBaseVelocity(self.car, self.client)[0][0:2]
 
         # Concatenate position, orientation, velocity
-        observation = (pos + ori + vel)
+        observation = (pos, ori, vel)
 
         return observation
