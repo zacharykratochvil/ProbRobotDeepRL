@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=None,
         help='seed of the experiment')
     parser.add_argument('--total-timesteps', type=int, default=25_000,
-        help='total timesteps of the experiments')
+        help='total timesteps of all experiments')
     parser.add_argument('--torch-deterministic', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
         help='if toggled, `torch.backends.cudnn.deterministic=False`')
     parser.add_argument('--cuda', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,

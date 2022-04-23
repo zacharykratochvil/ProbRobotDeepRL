@@ -131,3 +131,4 @@ dmypy.json
 # data outputs
 runs/
 videos/
+wandb/

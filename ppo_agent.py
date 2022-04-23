@@ -41,6 +41,7 @@ class PPOAgent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
+        x[np.isnan(x)] = 0
         logits = self.actor(x)
         probs = Categorical(logits=logits)
         if action is None:
@@ -61,8 +62,8 @@ class PPOAgent(nn.Module):
             with torch.no_grad():
                 action, logprob, _, value = self.get_action_and_value(next_obs)
                 self.values[step] = value.flatten()
-            self.actions[step] = action
-            self.logprobs[step] = logprob
+                self.actions[step] = action
+                self.logprobs[step] = logprob
 
 
             '''
@@ -72,7 +73,8 @@ class PPOAgent(nn.Module):
             next_obs, reward, done, info = self.envs.step(action.cpu().numpy())
             self.rewards[step] = torch.tensor(reward).to(self.device).view(-1)
             next_obs, next_done = torch.Tensor(next_obs).to(self.device), torch.Tensor(done).to(self.device)
-
+            self.next_obs = next_obs
+            self.next_done = next_done
 
             '''
             This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
@@ -83,6 +85,7 @@ class PPOAgent(nn.Module):
                     self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
                     self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
                     break
+
 
     def advantage(self, num_steps, gamma, gae=False, gae_lambda=None):
         # bootstrap value if not done
@@ -139,7 +142,6 @@ class PPOAgent(nn.Module):
         # TRY NOT TO MODIFY: start the game
         start_time = time.time()
         self.global_step = 0
-        self.envs.reset()
         self.next_obs = torch.Tensor(self.envs.reset()).to(self.device)
         self.next_done = torch.zeros(num_envs).to(self.device)
         num_updates = self.args.total_timesteps // self.args.batch_size
@@ -151,6 +153,7 @@ class PPOAgent(nn.Module):
         )
 
         for update in range(1, num_updates + 1):
+
             # Annealing the rate if instructed to do so.
             if self.args.anneal_lr:
                 frac = 1.0 - (update - 1.0) / num_updates #fraction is one at the beginning and linearly decreases to 0 after all updates
@@ -158,6 +161,7 @@ class PPOAgent(nn.Module):
                 optimizer.param_groups[0]["lr"] = lrnow#update learning rate w pytorch api... and at the end this is all one iteration of the training loop
 
             # policy rollout
+            self.envs.reset()
             self.rollout(num_steps, num_envs, self.next_obs, self.next_done)
 
             # GAE or alternate advantage calculation
@@ -171,7 +175,6 @@ class PPOAgent(nn.Module):
             b_returns = returns.reshape(-1)
             b_values = self.values.reshape(-1)
 
-
             '''
             for training we take each indices of the the batch amd shuffle them for any given epoch
             '''
@@ -184,11 +187,10 @@ class PPOAgent(nn.Module):
                     end = start + self.args.minibatch_size
                     mb_inds = b_inds[start:end]
 
-
                     '''
                     Training Fully begins!!!
                     
-                    First a forward pass onn mini batch observations
+                    First a forward pass on mini batch observations
                     '''
                     _, newlogprob, entropy, newvalue = self.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])#training officially starts... mini batch actions only
                     logratio = newlogprob - b_logprobs[mb_inds]
@@ -203,8 +205,10 @@ class PPOAgent(nn.Module):
                     PPO adv normalization
                     '''
                     mb_advantages = b_advantages[mb_inds]
+                    #print(mb_advantages)
                     if self.args.norm_adv:
                         mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
+                    #print(mb_advantages)
 
                     # Policy loss/ clipped policy objective
                     pg_loss1 = -mb_advantages * ratio
