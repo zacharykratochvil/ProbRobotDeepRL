@@ -41,7 +41,6 @@ class PPOAgent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
-        print(np.asarray(x).shape)
         logits = self.actor(x)
         probs = Categorical(logits=logits)
         if action is None:
@@ -140,7 +139,7 @@ class PPOAgent(nn.Module):
         # TRY NOT TO MODIFY: start the game
         start_time = time.time()
         self.global_step = 0
-        print(self.envs.reset())
+        self.envs.reset()
         self.next_obs = torch.Tensor(self.envs.reset()).to(self.device)
         self.next_done = torch.zeros(num_envs).to(self.device)
         num_updates = self.args.total_timesteps // self.args.batch_size

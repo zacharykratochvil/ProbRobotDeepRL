@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "ProbRobotDeepRL"
+version = "0.1.0"
+description = ""
+authors = ["bharatkesari, nikolasc1minelli <nikolasciminelli@gmail.com>, zacharykratochvil <zacharykratochvil@gmail.com"]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0,<3.10"
+torch = "^1.7.1"
+stable-baselines3 = "^1.1.0"
+tensorboard = "^2.5.0"
+wandb = "0.12.1"
+pyglet = "^1.5.19"
+opencv-python = "^4.5.3"
+gym = "^0.23.0"
+pybullet = "^3.2"
+
+# Atari-related dependencies
+atari-py = {version = "0.2.6", optional = true}
+ale-py = {version = "^0.7", optional = true}
+AutoROM = {version = "^0.4.2", optional = true, extras = ["accept-rom-license"]}
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.extras]
+atari = ["ale-py", "AutoROM"]

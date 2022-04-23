@@ -3,65 +3,80 @@ import os
 import math
 import numpy as np
 
+# define constants
+FORWARD = 0
+BACKWARD = 1
+LEFT = 2
+RIGHT = 3
 
-class Car:
+def opposite_action(action):
+    if action == FORWARD:
+        return BACKWARD
+    if action == BACKWARD:
+        return FORWARD
+    if action == LEFT:
+        return RIGHT
+    if action == RIGHT:
+        return LEFT
+
+# Turtlebot class handles structure and movement of turtlebot
+class Turtlebot:
     def __init__(self, client):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), "structures", "turtlebot.urdf")
-        print(f_name)
-        self.car = p.loadURDF(fileName=f_name,
+        self.id = p.loadURDF(fileName=f_name,
                               basePosition=[0, 0, 0],
                               physicsClientId=client)
 
-        # Joint indices as found by p.getJointInfo()
-        self.drive_joints = [0, 1]
-        # Joint speed
-        self.joint_speed = np.array([0, 0])
-        # Drag constants
-        self.c_rolling = 0.2
-        self.c_drag = 0.01
-        # Throttle constant increases "speed" of the car
-        self.c_throttle = 20
-
-    def get_ids(self):
-        return self.car, self.client
-
+    # actions are defined as constants in this module
     def apply_action(self, action):
-        # Expects action to be an integer [0, 3]
 
-        # get info about car's whereabouts
-        pos, qat = p.getBasePositionAndOrientation(self.car, self.client)
+        # get info about bot's whereabouts
+        pos, quat = p.getBasePositionAndOrientation(self.id, self.client)
         pos = np.array(pos)
-        _, unit, vel = self.get_observation()
-        unit = np.array([unit[0], unit[1], 0])
-        ang = p.getEulerFromQuaternion(qat)
+        _, unit_vec, vel = self.get_observation()
+        unit_vec = np.array([unit_vec[0], unit_vec[1], 0])
+        ang = np.array(p.getEulerFromQuaternion(quat))
 
-        # teleport car to given coords
+        # teleport bot to given coords
         def teleport(new_pos, new_ang):
-            p.resetBasePositionAndOrientation(self.car,
+            p.resetBasePositionAndOrientation(self.id,
                         new_pos, new_ang, self.client)
 
         # define discrete actions
-        if action == 0: # forward
-            teleport(pos + unit, qat)
-        elif action == 1: # backward
-            teleport(pos - unit, qat)
-        elif action == 2: # turn left
-            pass
-        elif action == 3: # turn right
-            pass
+        drive_magnitude = .25 # meters
+        turn_magnitude = 15*np.pi/180 # radians
+
+        if action == FORWARD:
+            new_pos = pos + drive_magnitude*unit_vec
+            teleport(new_pos, quat)
+
+        elif action == BACKWARD:
+            new_pos = pos - drive_magnitude*unit_vec
+            teleport(new_pos, quat)
+
+        elif action == LEFT:
+            ang[2] += turn_magnitude
+            new_quat = p.getQuaternionFromEuler(ang)
+            teleport(pos, new_quat)
+
+        elif action == RIGHT:
+            ang[2] -= turn_magnitude
+            new_quat = p.getQuaternionFromEuler(ang)
+            teleport(pos, new_quat)
+
         else:
             raise Exception(f"{action} is not a valid action, must be integer [0,3]")
 
     def get_observation(self):
-        # Get the position and orientation of the car in the simulation
-        pos, ang = p.getBasePositionAndOrientation(self.car, self.client)
+        # Get the position and orientation of the bot in the simulation
+        pos, ang = p.getBasePositionAndOrientation(self.id, self.client)
         ang = p.getEulerFromQuaternion(ang)
         ori = (math.cos(ang[2]), math.sin(ang[2]))
         pos = pos[:2]
         
-        # Get the velocity of the car
-        vel = p.getBaseVelocity(self.car, self.client)[0][0:2]
+        # Get the velocity of the bot
+        vel = p.getBaseVelocity(self.id, self.client)[0][0:2]
 
         # Concatenate position, orientation, velocity
         observation = (pos, ori, vel)

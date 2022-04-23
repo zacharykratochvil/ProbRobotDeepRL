@@ -25,11 +25,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp-name', type=str, default=os.path.basename(__file__).rstrip(".py"),
         help='the name of this experiment')
-    parser.add_argument('--gym-id', type=str, default="CartPole-v1",
+    parser.add_argument('--gym-id', type=str, default="TurtleRLEnv-v0",
         help='the id of the gym environment')
     parser.add_argument('--learning-rate', type=float, default=2.5e-4,
         help='the learning rate of the optimizer')
-    parser.add_argument('--seed', type=int, default=1,
+    parser.add_argument('--seed', type=int, default=None,
         help='seed of the experiment')
     parser.add_argument('--total-timesteps', type=int, default=25_000,
         help='total timesteps of the experiments')
@@ -87,9 +87,9 @@ def parse_args():
     # fmt: on
     return args
 
-def make_env(seed, idx, capture_video, run_name):
+def make_env(seed, gym_id, idx, capture_video, run_name):
     def env_fn():
-        env = gym.make("TurtleRLEnv-v0", env_type="gui")
+        env = gym.make(gym_id, env_type="gui")
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
@@ -119,6 +119,8 @@ if __name__ == "__main__":
         )
 
     # TRY NOT TO MODIFY: seeding
+    if type(args.seed) == type(None):
+        args.seed = np.random.randint(0,10e6)
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -128,7 +130,7 @@ if __name__ == "__main__":
 
     # env setup
     envs = gym.vector.SyncVectorEnv(
-        [make_env(args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]
+        [make_env(args.seed + i, args.gym_id, i, args.capture_video, run_name) for i in range(args.num_envs)]
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
