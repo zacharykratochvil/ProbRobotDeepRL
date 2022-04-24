@@ -20,7 +20,7 @@ class TurtleRLEnv(gym.Env):
                                 high=255, shape=(1,15000), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
-        if kwargs["env_type"] == "gui":
+        if kwargs["gui"] == True:
             self.client = p.connect(p.GUI)
         else:
             self.client = p.connect(p.DIRECT)
@@ -34,7 +34,6 @@ class TurtleRLEnv(gym.Env):
         self.prev_dist_to_goal = None
         self.rendered_img = None
         self.render_rot_matrix = None
-        self.reset()
 
     def step(self, action):
         # Feed action to the bot and get observation of bot's state
@@ -124,6 +123,12 @@ class TurtleRLEnv(gym.Env):
         if plot == True:
             plt.draw()
             plt.pause(.00001)
+        
+        return frame
+
+        #return np.transpose(
+        #    np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
+        #)
 
 
     def validate_position(self):

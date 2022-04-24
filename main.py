@@ -87,13 +87,13 @@ def parse_args():
     # fmt: on
     return args
 
-def make_env(seed, gym_id, idx, capture_video, run_name):
+def make_env(seed, gym_id, idx, capture_video, gui, run_name):
     def env_fn():
-        env = gym.make(gym_id, env_type="gui")
+        env = gym.make(gym_id, gui=gui)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
-                env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
+                env = gym.wrappers.RecordVideo(env, video_folder=f"videos/{run_name}", episode_trigger=lambda x: True)#, step_trigger=lambda x: True)
         env.seed(seed)
         env.action_space.seed(seed)
         env.observation_space.seed(seed)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # env setup
     envs = gym.vector.SyncVectorEnv(
-        [make_env(args.seed + i, args.gym_id, i, args.capture_video, run_name) for i in range(args.num_envs)]
+        [make_env(args.seed + i, args.gym_id, i, args.capture_video, args.gui, run_name) for i in range(args.num_envs)]
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 

@@ -10,16 +10,23 @@ This is code for our simulation of a ball-finding task with a Turtlebot.
 ` poetry install `
 
 ## Running Simulation from Pre-trained Model
-` poetry run python main.py --gui --num-envs 1 --train `
+Not implemented yet.
 
 ## Training
-` poetry run python main.py --num-envs 4 --train `
+To replicate the submitted video, run:
+` poetry run python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `
+
+## Evaluating
+To generate the loss curve and other plots after a round of training, run:
+` tensorboard --logdir runs `
 
 ## Additional Information
-Notes: We only use the simulator to
+Note: e only use the simulator to
 simulate optics. Our observation space is images and PyBullet
 renders them nicely. We're using discrete position-control
 actions in our robot so we best simulate this by teleporting.
+
+For latest version: https://github.com/zacharykratochvil/ProbRobotDeepRL
 
 ## Built using:
 * https://github.com/GerardMaggiolino/TRPO-Implementation

@@ -132,3 +132,6 @@ dmypy.json
 runs/
 videos/
 wandb/
+
+# documents
+*.pdf
