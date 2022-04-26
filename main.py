@@ -72,7 +72,7 @@ def parse_args():
     parser.add_argument('--clip-coef', type=float, default=0.2,
         help="the surrogate clipping coefficient")
     parser.add_argument('--clip-vloss', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-        help='Toggles wheter or not to use a clipped loss for the value function, as per the paper.')
+        help='Toggles whether or not to use a clipped loss for the value function, as per the paper.')
     parser.add_argument('--ent-coef', type=float, default=0.01,
         help="coefficient of the entropy")
     parser.add_argument('--vf-coef', type=float, default=0.5,
@@ -82,9 +82,7 @@ def parse_args():
     parser.add_argument('--target-kl', type=float, default=None,
         help='the target KL divergence threshold')
     args = parser.parse_args()
-    args.batch_size = int(args.num_envs * args.num_steps)
-    args.minibatch_size = int(args.batch_size // args.num_minibatches)
-    # fmt: on
+    
     return args
 
 def make_env(seed, gym_id, idx, capture_video, gui, run_name):
@@ -101,9 +99,10 @@ def make_env(seed, gym_id, idx, capture_video, gui, run_name):
 
     return env_fn
 
-if __name__ == "__main__":
-    args = parse_args()
-    
+def main(args):
+    args.batch_size = int(args.num_envs * args.num_steps)
+    args.minibatch_size = int(args.batch_size // args.num_minibatches)
+
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
@@ -154,3 +153,8 @@ if __name__ == "__main__":
                 ob = env.reset()
                 time.sleep(1/30)
         '''
+
+if __name__ == "__main__":
+    args = parse_args()
+    
+    main(args)

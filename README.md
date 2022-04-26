@@ -21,7 +21,7 @@ To generate the loss curve and other plots after a round of training, run:
 ` tensorboard --logdir runs `
 
 ## Additional Information
-Note: e only use the simulator to
+Note: We only use the simulator to
 simulate optics. Our observation space is images and PyBullet
 renders them nicely. We're using discrete position-control
 actions in our robot so we best simulate this by teleporting.
