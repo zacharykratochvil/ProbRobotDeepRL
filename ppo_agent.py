@@ -7,30 +7,15 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
+from model import Model
+
 
 class PPOAgent(nn.Module):
     def __init__(self, args, envs, device):
-        super(PPOAgent, self).__init__()
+        super(PPOAgent,self).__init__()
 
-        def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-            torch.nn.init.orthogonal_(layer.weight, std)
-            torch.nn.init.constant_(layer.bias, bias_const)
-            return layer
-
-        self.critic = nn.Sequential(
-            layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 1), std=1.0),
-        )
-        self.actor = nn.Sequential(
-            layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01),
-        )
+        self.critic = Model(1, 1.0)
+        self.actor = Model(4, .01)
 
         self.args = args
         self.envs = envs
@@ -41,8 +26,9 @@ class PPOAgent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
-        x[np.isnan(x)] = 0
+        #x[np.isnan(x)] = 0
         logits = self.actor(x)
+        #x[np.isnan(x)] = 0
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()

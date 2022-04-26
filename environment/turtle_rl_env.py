@@ -17,7 +17,7 @@ class TurtleRLEnv(gym.Env):
         super(TurtleRLEnv,self).__init__()
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
-                                high=255, shape=(1,15000), dtype=np.float32)
+                                high=1, shape=(3,240,640), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
         if kwargs["gui"] == True:
@@ -58,9 +58,9 @@ class TurtleRLEnv(gym.Env):
             reward = 0
 
         self.render(False)
-        img_array = self.rendered_img.make_image(None,magnification=1/3.69)
-        img_array = img_array[0][0:50,0:100,0:3] # crop out self and alpha
-        observation = np.reshape(img_array,[1,-1])
+        img_array = self.rendered_img.make_image(None,magnification=1.3)
+        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
+        observation = observation/255
         return observation, reward, self.done, dict()
 
     def seed(self, seed=None):
@@ -93,9 +93,10 @@ class TurtleRLEnv(gym.Env):
                                            (pos[1] - goal_pos[1]) ** 2))
         
         self.render(False)
-        img_array = self.rendered_img.make_image(None,magnification=1/3.69)
-        img_array = img_array[0][0:50,0:100,0:3] # crop out self and alpha
-        return np.reshape(img_array,[1,-1])
+        img_array = self.rendered_img.make_image(None,magnification=1.3)
+        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
+        observation = observation/255
+        return observation
 
     def render(self, plot=True):
         if self.rendered_img is None:
