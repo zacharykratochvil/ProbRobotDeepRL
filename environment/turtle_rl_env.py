@@ -188,7 +188,7 @@ class TurtleRLEnv(gym.Env):
         observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        self.observation = zoom(self.observation, zoom = (1, 0.2083333333, 0.234375), order=1)
+        observation = zoom(observation, zoom = (1, 0.2083333333, 0.234375), order=1)
         # normalize for 256-bit color
         observation = observation/255
         return observation
