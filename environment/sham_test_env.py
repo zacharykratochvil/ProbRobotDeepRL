@@ -35,7 +35,7 @@ class ShamTestEnv(gym.Env):
         return self.observation, reward, self.done, dict()
 
     #######
-    # for random seeding, not used
+    # sets the random seed of the environment to the specified number
     #######
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)

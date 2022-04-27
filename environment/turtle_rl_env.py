@@ -7,26 +7,28 @@ from .plane import Plane
 from . import turtlebot
 from .walls import Walls
 import matplotlib.pyplot as plt
-from typing import Generic
-import cv2
 
 class TurtleRLEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, *args, **kwargs):
         super(TurtleRLEnv,self).__init__()
+        # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
                                 high=1, shape=(3,240,640), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
+        # select whether to show pybullet's inbuilt gui
         if kwargs["gui"] == True:
             self.client = p.connect(p.GUI)
         else:
             self.client = p.connect(p.DIRECT)
+
         # Reduce length of episodes for RL algorithms
         p.setTimeStep(1/30, self.client)
 
+        # initialize simulation state
         self.bot = None
         self.goal = None
         self.walls = None
@@ -35,6 +37,17 @@ class TurtleRLEnv(gym.Env):
         self.rendered_img = None
         self.render_rot_matrix = None
 
+    ######
+    # advances the simulation one step, calculating the reward
+    #   inputs:
+    #       action - the action to take for this step
+    #   
+    #   returns:
+    #       observation - the input to the deep RL network
+    #       reward - the reward accumulated at this step
+    #       done - whether or not the simulation has ended
+    #       info - dictionary of debugging info
+    #######
     def step(self, action):
         # Feed action to the bot and get observation of bot's state
         self.bot.apply_action(action)
@@ -49,13 +62,12 @@ class TurtleRLEnv(gym.Env):
         dist_to_goal = math.sqrt(((bot_ob[0] - self.goal.pos[0]) ** 2 +
                                   (bot_ob[1] - self.goal.pos[1]) ** 2))
 
+        reward = -1
         if dist_to_goal < self.goal.diameter/2:
             self.done = True
-            reward = 50
+            reward += 1000
         elif not is_valid:
-            reward = -5
-        else:
-            reward = 0
+            reward += -10
 
         self.render(False)
         img_array = self.rendered_img.make_image(None,magnification=1.3)
@@ -63,10 +75,18 @@ class TurtleRLEnv(gym.Env):
         observation = observation/255
         return observation, reward, self.done, dict()
 
+    #######
+    # sets the random seed of the environment to the specified number
+    #######
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
 
+    ######
+    # resets the environment to its original state
+    # randomizes position of goal
+    # returns the current observation, just as in the function "step" above
+    ######
     def reset(self):
         p.resetSimulation(self.client)
         p.setGravity(0, 0, -10)
@@ -98,6 +118,10 @@ class TurtleRLEnv(gym.Env):
         observation = observation/255
         return observation
 
+    ######
+    # constructs an image of the environment using pybullet
+    # returns the image as well as storing it in self.rendered_img
+    ######
     def render(self, plot=True):
         if self.rendered_img is None:
             self.rendered_img = plt.imshow(np.zeros((100, 100, 4)))
@@ -127,11 +151,14 @@ class TurtleRLEnv(gym.Env):
         
         return frame
 
-        #return np.transpose(
-        #    np.array(pygame.surfarray.pixels3d(self.screen)), axes=(1, 0, 2)
-        #)
 
-
+    ##########
+    # For discrete environment we override much of the physics engine,
+    # so this function is necessary to check for collisions
+    #
+    # returns: True if and only if bot's position is valid (no collisons)
+    #          False otherwise 
+    ##########
     def validate_position(self):
 
         #check for collison with walls
