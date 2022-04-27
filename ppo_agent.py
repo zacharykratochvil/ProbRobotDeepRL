@@ -58,9 +58,21 @@ class PPOAgent(nn.Module):
             '''
             next_obs, reward, done, info = self.envs.step(action.cpu().numpy())
             self.rewards[step] = torch.tensor(reward).to(self.device).view(-1)
+            # current_step = self.rewards[step][0].item()
+        
+
+            print('as just number', self.rewards[step][0].item())
+            print('*'*30)
+            print('at each step',self.rewards[step])
+            print('*'*30)
             next_obs, next_done = torch.Tensor(next_obs).to(self.device), torch.Tensor(done).to(self.device)
             self.next_obs = next_obs
             self.next_done = next_done
+            print('*'*30)
+            print('whole tensor',self.rewards)
+            print('*'*30)
+            if done == True:
+                break
 
             '''
             This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
