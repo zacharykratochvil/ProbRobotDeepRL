@@ -19,6 +19,7 @@ pybullet = "^3.2"
 atari-py = {version = "0.2.6", optional = true}
 ale-py = {version = "^0.7", optional = true}
 AutoROM = {version = "^0.4.2", optional = true, extras = ["accept-rom-license"]}
+scipy = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

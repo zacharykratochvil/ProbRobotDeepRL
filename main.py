@@ -11,6 +11,7 @@ import wandb
 
 from ppo_agent import PPOAgent
 import environment
+from environment.register import register
 
 def strtobool(string):
     if string in ["T","t","True","true"]:
@@ -87,6 +88,7 @@ def parse_args():
 
 def make_env(seed, gym_id, idx, capture_video, gui, run_name):
     def env_fn():
+        register(gym_id)
         env = gym.make(gym_id, gui=gui)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
