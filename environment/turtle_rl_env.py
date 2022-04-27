@@ -62,15 +62,18 @@ class TurtleRLEnv(gym.Env):
         # Compute reward for reaching goal, punishment for hitting wall
         dist_to_goal = math.sqrt(((bot_ob[0] - self.goal.pos[0]) ** 2 +
                                   (bot_ob[1] - self.goal.pos[1]) ** 2))
+        observation = self.make_observation()
+
+        avg_red = np.mean(self.rendered_img.get_array()[:,:,0])
+        avg_green = np.mean(self.rendered_img.get_array()[:,:,1])
+        threshold = 50
 
         reward = -1
-        if dist_to_goal < self.goal.diameter:
+        if  avg_green - avg_red > threshold:
             self.done = True
             reward += 1000
         elif not is_valid:
             reward += -10
-
-        observation = self.make_observation()
                 
         return observation, reward, self.done, dict()
 
@@ -89,20 +92,29 @@ class TurtleRLEnv(gym.Env):
     def reset(self):
         p.resetSimulation(self.client)
         p.setGravity(0, 0, -10)
-        # Reload the plane and bot
-        Plane(self.client)
-        self.walls = Walls(self.client)
-        self.bot = turtlebot.Turtlebot(self.client)
-
-        # Set the goal to a random target
-        x = (self.np_random.uniform(.5, 1) if self.np_random.randint(2) else
-             self.np_random.uniform(-1, -.5))
-        y = (self.np_random.uniform(.5, 1) if self.np_random.randint(2) else
-             self.np_random.uniform(-1, -.5))
-        goal_pos = (x, y)
+        
         self.done = False
 
-        # Visual element of the goal
+        # Reload the playpen
+        Plane(self.client)
+        self.walls = Walls(self.client)
+
+        # Set the bot and goal to random positions
+        collision_radius = .5
+
+        gx = np.random.uniform(-1.25,1.25)
+        gy = np.random.uniform(-1.25,1.25)
+        goal_pos = (gx, gy)
+
+        bx = gx; by = gy
+        while (bx > gx - collision_radius and bx < gx + collision_radius
+                and by > by - collision_radius and by < by + collision_radius):
+            bx = np.random.uniform(-1,1)
+            by = np.random.uniform(-1,1)
+        bot_pos = (bx, by)
+
+        # Create goal and bot in pybullet
+        self.bot = turtlebot.Turtlebot(self.client, bot_pos)
         self.goal = Ball(self.client, goal_pos)
 
         # Get observation to return
@@ -137,8 +149,6 @@ class TurtleRLEnv(gym.Env):
 
         # Add noise and display image
         frame = p.getCameraImage(100, 100, view_matrix, proj_matrix)[2]
-        frame = np.reshape(frame, (100, 100, 4))
-
         self.rendered_img.set_data(frame)
         
         if plot == True:

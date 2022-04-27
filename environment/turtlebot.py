@@ -21,11 +21,11 @@ def opposite_action(action):
 
 # Turtlebot class handles structure and movement of turtlebot
 class Turtlebot:
-    def __init__(self, client):
+    def __init__(self, client, pos):
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), "structures", "turtlebot.urdf")
         self.id = p.loadURDF(fileName=f_name,
-                              basePosition=[0, 0, 0],
+                              basePosition=[pos[0], pos[1], 0],
                               physicsClientId=client)
 
     # actions are defined as constants in this module
