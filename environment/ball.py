@@ -10,6 +10,5 @@ class Ball:
         self.pos = pos
         
         bounding_box = p.getAABB(self.id, physicsClientId=client)
-        self.diameter = bounding_box[0][1] - bounding_box[1][1] # difference in x coords
-
+        self.diameter = abs(bounding_box[0][1] - bounding_box[1][1]) # difference in x coords
                 

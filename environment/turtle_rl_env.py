@@ -64,7 +64,7 @@ class TurtleRLEnv(gym.Env):
                                   (bot_ob[1] - self.goal.pos[1]) ** 2))
 
         reward = -1
-        if dist_to_goal < self.goal.diameter/2:
+        if dist_to_goal < self.goal.diameter:
             self.done = True
             reward += 1000
         elif not is_valid:
