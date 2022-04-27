@@ -102,9 +102,19 @@ def make_env(seed, gym_id, idx, capture_video, gui, run_name):
     return env_fn
 
 def main(args):
+    # finish computing arguments and validate
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
+    remainder = args.batch_size % args.minibatch_size
+    if remainder == 1:
+        raise Exception("Singleton minibatches not allowed. Choose a different number.")
+    if remainder != 0:
+        raise Warning("Stray minibatches. Consider choosing a number that goes in evenly.")
+    remainder = args.total_timesteps % args.batch_size
+    if remainder != 0:
+        raise Exception("Number of batches (steps*envs) must go in evenly to total timesteps.")
 
+    # weights and biases
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
