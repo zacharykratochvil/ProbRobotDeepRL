@@ -7,6 +7,7 @@ from .plane import Plane
 from . import turtlebot
 from .walls import Walls
 import matplotlib.pyplot as plt
+from scipy.ndimage import zoom
 
 class TurtleRLEnv(gym.Env):
     metadata = {'render.modes': ['human']}
@@ -16,7 +17,7 @@ class TurtleRLEnv(gym.Env):
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
-                                high=1, shape=(3,240,640), dtype=np.float32)
+                                high=1, shape=(3,50,150), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
         # select whether to show pybullet's inbuilt gui
@@ -69,10 +70,8 @@ class TurtleRLEnv(gym.Env):
         elif not is_valid:
             reward += -10
 
-        self.render(False)
-        img_array = self.rendered_img.make_image(None,magnification=1.3)
-        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
-        observation = observation/255
+        observation = self.make_observation()
+                
         return observation, reward, self.done, dict()
 
     #######
@@ -112,10 +111,7 @@ class TurtleRLEnv(gym.Env):
         self.prev_dist_to_goal = math.sqrt(((pos[0] - goal_pos[0]) ** 2 +
                                            (pos[1] - goal_pos[1]) ** 2))
         
-        self.render(False)
-        img_array = self.rendered_img.make_image(None,magnification=1.3)
-        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
-        observation = observation/255
+        observation = self.make_observation()
         return observation
 
     ######
@@ -180,5 +176,25 @@ class TurtleRLEnv(gym.Env):
         else:
             return True
 
+    ######
+    # process rendered image into format of observation
+    ######
+    def make_observation(self):
+        # update image
+        self.render(False)
+        # scale to ~480x640 the size of the robot's image
+        img_array = self.rendered_img.make_image(None,magnification=1.3)
+        #crop out robot and reorder axes for pytorch
+        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
+        #change size obs = transoformation... to 50,150
+        # (1, 0.2083333333, 0.234375) 240x640 to 50x150
+        self.observation = zoom(self.observation, zoom = (1, 0.2083333333, 0.234375), order=1)
+        # normalize for 256-bit color
+        observation = observation/255
+        return observation
+
+    ######
+    # let go of pybullet's resources
+    ######
     def close(self):
         p.disconnect(self.client)
