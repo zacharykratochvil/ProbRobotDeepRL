@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from model import Model
+from model1 import Model
 
 
 class PPOAgent(nn.Module):

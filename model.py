@@ -17,7 +17,7 @@ class Model(nn.Module):
             self.layer_init(nn.Conv2d(128,128,kernel_size=3,padding=1)),#10,26
             nn.Tanh(),
             nn.Flatten(),
-            self.layer_init(nn.Linear(33280, 1024)),#260*128
+            self.layer_init(nn.Linear(33280, 1024)),
             nn.Tanh(),
             self.layer_init(nn.Linear(1024, 64)),
             nn.Tanh(),
