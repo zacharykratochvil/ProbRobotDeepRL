@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from scipy.ndimage import zoom
+import scipy.ndimage as sp_img
 
 class ShamTestEnv(gym.Env):
     def __init__(self, *args, **kwargs):
@@ -58,7 +58,7 @@ class ShamTestEnv(gym.Env):
         self.observation = np.random.rand(3,240,640)
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        self.observation = zoom(self.observation, zoom = (1, 0.2083333333, 0.234375), order=1)
+        self.observation = sp_img.zoom(self.observation, zoom = (1, 0.2083333333, 0.234375), order=1)
 
     ######
     # would output an image of the environment, but this is a test so it is not used
