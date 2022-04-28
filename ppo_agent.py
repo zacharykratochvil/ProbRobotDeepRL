@@ -1,5 +1,5 @@
 import time
-
+import os
 import gym
 import numpy as np
 import torch
@@ -26,9 +26,7 @@ class PPOAgent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
-        #x[np.isnan(x)] = 0
         logits = self.actor(x)
-        #x[np.isnan(x)] = 0
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()
@@ -264,6 +262,16 @@ class PPOAgent(nn.Module):
             self.writer.add_scalar("losses/explained_variance", explained_var, self.global_step)
             print("SPS:", int(self.global_step / (time.time() - start_time)))
             self.writer.add_scalar("charts/SPS", int(self.global_step / (time.time() - start_time)), self.global_step)
+            self.save_model(os.sep.join([self.args.model_dir,f"model{update}.pth"]))
 
         self.envs.close()
         self.writer.close()
+
+    def save_model(self, path):
+        torch.save({
+            'policy': self.state_dict(),
+        }, path)
+
+    def load_model(self, path):
+        checkpoint = torch.load(path)
+        self.policy.load_state_dict(checkpoint['policy'])

@@ -50,6 +50,7 @@ def parse_args():
         help="the entity (team) of wandb's project")
     parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
         help='weather to capture videos of the agent performances (check out `videos` folder)')
+    parser.add_argument('--checkpoint', type=str)
 
     # Algorithm specific arguments
     parser.add_argument('--num-envs', type=int, default=4,
@@ -146,25 +147,28 @@ def main(args):
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
     # agent setup
+    if args.train == True:
+        args.model_dir = os.sep.join(["model",run_name])
+        os.makedirs(args.model_dir)
+
     agent = PPOAgent(args, envs, device)
 
     if args.train == True:
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)
-        #agent.save_model("agent.pth")
-    else:
-        agent.load_model()
 
-        '''
+    else:
+        agent.load_model(args.checkpoint)
+
+        env = make_env(args.seed, args.gym_id, 0, args.capture_video, args.gui, run_name)
         ob = env.reset()
         while True:
-            action = agent(ob)
+            action = agent.actor(ob)
             ob, _, done, _ = env.step(action)
             env.render()
             if done:
                 ob = env.reset()
                 time.sleep(1/30)
-        '''
 
 if __name__ == "__main__":
     args = parse_args()
