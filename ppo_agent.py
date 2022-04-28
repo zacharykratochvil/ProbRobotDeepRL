@@ -270,6 +270,8 @@ class PPOAgent(nn.Module):
     def save_model(self, path):
         torch.save({
             'policy': self.state_dict(),
+            'actor': self.actor.state_dict(),
+            'critic': self.critic.state_dict()
         }, path)
 
     def load_model(self, path):
