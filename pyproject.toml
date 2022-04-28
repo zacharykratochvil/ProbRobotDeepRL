@@ -14,12 +14,12 @@ pyglet = "^1.5.19"
 opencv-python = "^4.5.3"
 gym = "^0.23.0"
 pybullet = "^3.2"
+scipy = "^1.8.0"
 
 # Atari-related dependencies
 atari-py = {version = "0.2.6", optional = true}
 ale-py = {version = "^0.7", optional = true}
 AutoROM = {version = "^0.4.2", optional = true, extras = ["accept-rom-license"]}
-scipy = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
