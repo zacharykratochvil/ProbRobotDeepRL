@@ -123,7 +123,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "click"
-version = "8.1.2"
+version = "8.1.3"
 description = "Composable command line interface toolkit"
 category = "main"
 optional = false
@@ -181,7 +181,7 @@ six = ">=1.4.0"
 
 [[package]]
 name = "fonttools"
-version = "4.33.2"
+version = "4.33.3"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -553,7 +553,7 @@ pyasn1 = ">=0.4.6,<0.5.0"
 
 [[package]]
 name = "pybullet"
-version = "3.2.2"
+version = "3.2.4"
 description = "Official Python Interface for the Bullet Physics SDK specialized for Robotics Simulation and Reinforcement Learning"
 category = "main"
 optional = false
@@ -919,7 +919,7 @@ python-versions = "*"
 
 [[package]]
 name = "werkzeug"
-version = "2.1.1"
+version = "2.1.2"
 description = "The comprehensive WSGI web application library."
 category = "main"
 optional = false
@@ -946,7 +946,7 @@ atari = ["ale-py", "AutoROM"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.10"
-content-hash = "8739431358c1b83beb8b519156540ca6faab79b200f7247909a992084936a47b"
+content-hash = "5d2ab08887bfbac6a0f4f9cec59a85c820b88277a40e3e8c14060ef5c0a66ceb"
 
 [metadata.files]
 absl-py = [
@@ -1009,8 +1009,8 @@ charset-normalizer = [
     {file = "charset_normalizer-2.0.12-py3-none-any.whl", hash = "sha256:6881edbebdb17b39b4eaaa821b438bf6eddffb4468cf344f09f89def34a8b1df"},
 ]
 click = [
-    {file = "click-8.1.2-py3-none-any.whl", hash = "sha256:24e1a4a9ec5bf6299411369b208c1df2188d9eb8d916302fe6bf03faed227f1e"},
-    {file = "click-8.1.2.tar.gz", hash = "sha256:479707fe14d9ec9a0757618b7a100a0ae4c4e236fac5b7f80ca68028141a1a72"},
+    {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
+    {file = "click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e"},
 ]
 cloudpickle = [
     {file = "cloudpickle-2.0.0-py3-none-any.whl", hash = "sha256:6b2df9741d06f43839a3275c4e6632f7df6487a1f181f5f46a052d3c917c3d11"},
@@ -1033,8 +1033,8 @@ docker-pycreds = [
     {file = "docker_pycreds-0.4.0-py2.py3-none-any.whl", hash = "sha256:7266112468627868005106ec19cd0d722702d2b7d5912a28e19b826c3d37af49"},
 ]
 fonttools = [
-    {file = "fonttools-4.33.2-py3-none-any.whl", hash = "sha256:b4da40696829845ea8c1cb33ce51c552179754cbee7ab4e8b96a6bcf421f437a"},
-    {file = "fonttools-4.33.2.zip", hash = "sha256:696fe922a271584c3ec8325ba31d4001a4fd6c4953b22900b767f1cb53ce1044"},
+    {file = "fonttools-4.33.3-py3-none-any.whl", hash = "sha256:f829c579a8678fa939a1d9e9894d01941db869de44390adb49ce67055a06cc2a"},
+    {file = "fonttools-4.33.3.zip", hash = "sha256:c0fdcfa8ceebd7c1b2021240bd46ef77aa8e7408cf10434be55df52384865f8e"},
 ]
 gitdb = [
     {file = "gitdb-4.0.9-py3-none-any.whl", hash = "sha256:8033ad4e853066ba6ca92050b9df2f89301b8fc8bf7e9324d412a63f8bf1a8fd"},
@@ -1424,14 +1424,14 @@ pyasn1-modules = [
     {file = "pyasn1_modules-0.2.8-py3.7.egg", hash = "sha256:c29a5e5cc7a3f05926aff34e097e84f8589cd790ce0ed41b67aed6857b26aafd"},
 ]
 pybullet = [
-    {file = "pybullet-3.2.2-cp27-cp27m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:9f6f01c8826110312694a30a1af59644792a923826cee182cffebdb1beafd89c"},
-    {file = "pybullet-3.2.2-cp27-cp27mu-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:28479038a42f3e3207d345202ac956181ccd9f2e0be0831fe52e311b9fc326a7"},
-    {file = "pybullet-3.2.2-cp35-cp35m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e99139a177695a57df8f754363e974065d1673e497834cdbd22c8ee1789d692b"},
-    {file = "pybullet-3.2.2-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:63f4f09d14d0d0bd5e1bbf6c245986ad704578e77013463b7b66255d4b4adc70"},
-    {file = "pybullet-3.2.2-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:c774195ce42a22e71ee0c62519c9419a1f45faaa1a5d87f2ebf1fbeeead0f4f1"},
-    {file = "pybullet-3.2.2-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3b9c651fd0cc518b6215d038e2ba71550a3302634e6b82ed36e8ed12ecfdca5a"},
-    {file = "pybullet-3.2.2-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3b07233c3d613bf7efff540a106b5f61c23ca4fa671a199af5052692968f8daf"},
-    {file = "pybullet-3.2.2.tar.gz", hash = "sha256:46dab6459d828e04b661bb80e014bcfb13c9f1ba40c022e5eb1132efcfe0b8e0"},
+    {file = "pybullet-3.2.4-cp27-cp27m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:064d269dda3a5112c0baa4e9d620ffa430155b0df4b32a7741489eb77ca8b503"},
+    {file = "pybullet-3.2.4-cp27-cp27mu-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:cc29d139c0129baf76f2149f9028b68b31e260bdb37ec8a61345cac41e632dfe"},
+    {file = "pybullet-3.2.4-cp35-cp35m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:f2778af6dde98639f001803215bfcd7775de901d78450b0a1ea9d2637aa2896e"},
+    {file = "pybullet-3.2.4-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:967391d79f3d9369e265df7b17c880e265d95259ca42c061a6e20f5441d7f23d"},
+    {file = "pybullet-3.2.4-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:d49b7daaf1747400b82877274dc3cb867d960575b16508510e7099b18af4dbe7"},
+    {file = "pybullet-3.2.4-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:7700006d0add2be0eed4a1b26eb39ac3d1bfe69e6ddf009d0eacf7997e1cf7c2"},
+    {file = "pybullet-3.2.4-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:30aa324bc26c981b1e42d2143e75912a35436646c8d1bb4f9b3ee1a98a61bfdf"},
+    {file = "pybullet-3.2.4.tar.gz", hash = "sha256:959e85bc0051324b9c4aba23d79365b77de216f9ceebc392f9d551fe63a0ebc6"},
 ]
 pyglet = [
     {file = "pyglet-1.5.23-py3-none-any.whl", hash = "sha256:086317c022612bf0aa28f32134a8cbe3d11de96787f5412d38d9c6abb6cfc771"},
@@ -1611,8 +1611,8 @@ wcwidth = [
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
 ]
 werkzeug = [
-    {file = "Werkzeug-2.1.1-py3-none-any.whl", hash = "sha256:3c5493ece8268fecdcdc9c0b112211acd006354723b280d643ec732b6d4063d6"},
-    {file = "Werkzeug-2.1.1.tar.gz", hash = "sha256:f8e89a20aeabbe8a893c24a461d3ee5dad2123b05cc6abd73ceed01d39c3ae74"},
+    {file = "Werkzeug-2.1.2-py3-none-any.whl", hash = "sha256:72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255"},
+    {file = "Werkzeug-2.1.2.tar.gz", hash = "sha256:1ce08e8093ed67d638d63879fd1ba3735817f7a80de3674d293f5984f25fb6e6"},
 ]
 zipp = [
     {file = "zipp-3.8.0-py3-none-any.whl", hash = "sha256:c4f6e5bbf48e74f7a38e7cc5b0480ff42b0ae5178957d564d18932525d5cf099"},
