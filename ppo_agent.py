@@ -262,7 +262,8 @@ class PPOAgent(nn.Module):
             self.writer.add_scalar("losses/explained_variance", explained_var, self.global_step)
             print("SPS:", int(self.global_step / (time.time() - start_time)))
             self.writer.add_scalar("charts/SPS", int(self.global_step / (time.time() - start_time)), self.global_step)
-            self.save_model(os.sep.join([self.args.model_dir,f"model{update}.pth"]))
+            if update % 10 == 0:
+                self.save_model(os.sep.join([self.args.model_dir,f"model{update}.pth"]))
 
         self.envs.close()
         self.writer.close()
