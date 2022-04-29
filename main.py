@@ -5,8 +5,10 @@ import time
 
 import gym
 import numpy as np
+from pandas import Categorical
 import torch
 import torch.optim as optim
+from torch.distributions.categorical import Categorical
 import wandb
 
 from ppo_agent import PPOAgent
@@ -50,7 +52,8 @@ def parse_args():
         help="the entity (team) of wandb's project")
     parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
         help='weather to capture videos of the agent performances (check out `videos` folder)')
-    parser.add_argument('--checkpoint', type=str)
+    parser.add_argument('--checkpoint', type=str,
+        help="the checkpoint of the model to load for testing")
 
     # Algorithm specific arguments
     parser.add_argument('--num-envs', type=int, default=4,
@@ -103,32 +106,7 @@ def make_env(seed, gym_id, idx, capture_video, gui, run_name):
     return env_fn
 
 def main(args):
-    # finish computing arguments and validate
-    args.batch_size = int(args.num_envs * args.num_steps)
-    args.minibatch_size = int(args.batch_size // args.num_minibatches)
-    remainder = args.batch_size % args.minibatch_size
-    if remainder == 1:
-        raise Exception("Singleton minibatches not allowed. Choose a different number.")
-    if remainder != 0:
-        raise Warning("Stray minibatches. Consider choosing a number that goes in evenly.")
-    remainder = args.total_timesteps % args.batch_size
-    if remainder != 0:
-        raise Exception("Number of batches (steps*envs) must go in evenly to total timesteps.")
-
-    # weights and biases
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    if args.track:
-        import wandb
-
-        wandb.init(
-            project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
-            config=vars(args),
-            name=run_name,
-            monitor_gym=True,
-            save_code=True,
-        )
 
     # TRY NOT TO MODIFY: seeding
     if type(args.seed) == type(None):
@@ -146,31 +124,63 @@ def main(args):
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    # agent setup
+    # split the rest of initialization base on whether training or testing
     if args.train == True:
+        # finish computing arguments and validate
+        args.batch_size = int(args.num_envs * args.num_steps)
+        args.minibatch_size = int(args.batch_size // args.num_minibatches)
+        remainder = args.batch_size % args.minibatch_size
+        if remainder == 1:
+            raise Exception("Singleton minibatches not allowed. Choose a different number.")
+        if remainder != 0:
+            raise Warning("Stray minibatches. Consider choosing a number that goes in evenly.")
+        remainder = args.total_timesteps % args.batch_size
+        if remainder != 0:
+            raise Exception("Number of batches (steps*envs) must go in evenly to total timesteps.")
+
+        # weights and biases
+        if args.track:
+            import wandb
+
+            wandb.init(
+                project=args.wandb_project_name,
+                entity=args.wandb_entity,
+                sync_tensorboard=True,
+                config=vars(args),
+                name=run_name,
+                monitor_gym=True,
+                save_code=True,
+            )
+
+        # agent setup
         args.model_dir = os.sep.join(["model",run_name])
         os.makedirs(args.model_dir)
 
-    agent = PPOAgent(args, envs, device)
+        agent = PPOAgent(args, envs, device)
 
-    if args.train == True:
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)
-
     else:
-        agent.load_model(args.checkpoint)
+        if type(args.checkpoint) == type(None) or os.path.exists(args.checkpoint) == False:
+            raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
-        env = make_env(args.seed, args.gym_id, 0, args.capture_video, args.gui, run_name)
+        env = envs.envs.pop()
+
+        agent = PPOAgent(args, envs, device)
+        agent.load_model(args.checkpoint)
+        
         ob = env.reset()
         while True:
-            action = agent.actor(ob)
+            action = Categorical(agent.actor(ob))
             ob, _, done, _ = env.step(action)
             env.render()
             if done:
                 ob = env.reset()
                 time.sleep(1/30)
+        
 
 if __name__ == "__main__":
     args = parse_args()
     
     main(args)
+    

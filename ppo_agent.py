@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from model1 import Model
+from model_cnn import Model
 
 
 class PPOAgent(nn.Module):
@@ -34,7 +34,8 @@ class PPOAgent(nn.Module):
 
     def rollout(self, num_steps, num_envs, next_obs, next_done):
         #policy rollout is its own loop
-        for step in range(0, num_steps):
+        step = 0
+        while step < num_steps:
             self.global_step += 1 * num_envs
             self.obs[step] = next_obs
             self.dones[step] = next_done
@@ -71,16 +72,21 @@ class PPOAgent(nn.Module):
             #print('*'*30)
             if done == True:
                 break
+            else:
+                step += 1
 
-            '''
-            This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
-            '''
-            for item in info:
-                if "episode" in item.keys():
-                    print(f"global_step={self.global_step}, episodic_return={item['episode']['r']}")
-                    self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
-                    self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
-                    break
+            #'''
+            #This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
+            #'''
+            #for item in info:
+            #    if "episode" in item.keys():
+            #        print(f"global_step={self.global_step}, episodic_return={item['episode']['r']}")
+            #        self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
+            #        self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
+            #        break
+        
+        self.writer.add_scalar("charts/episodic_return", np.sum(self.rewards.cpu().numpy()), self.global_step)
+        self.writer.add_scalar("charts/episodic_length", step, self.global_step)    
 
 
     def advantage(self, num_steps, gamma, gae=False, gae_lambda=None):
@@ -277,4 +283,4 @@ class PPOAgent(nn.Module):
 
     def load_model(self, path):
         checkpoint = torch.load(path)
-        self.policy.load_state_dict(checkpoint['policy'])
+        self.load_state_dict(checkpoint['policy'])

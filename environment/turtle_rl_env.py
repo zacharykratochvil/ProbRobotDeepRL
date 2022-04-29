@@ -112,6 +112,9 @@ class TurtleRLEnv(gym.Env):
             bx = np.random.uniform(-1,1)
             by = np.random.uniform(-1,1)
         bot_pos = (bx, by)
+        
+        ## for testing the reward function
+        #goal_pos = (bx + .5, by)
 
         # Create goal and bot in pybullet
         self.bot = turtlebot.Turtlebot(self.client, bot_pos)
@@ -177,7 +180,7 @@ class TurtleRLEnv(gym.Env):
         #check for being outside walls
         pos, quat = p.getBasePositionAndOrientation(self.bot.id, physicsClientId=self.client)
         pos = np.asarray(pos)
-        env_radius = self.walls.wall_half_length
+        env_radius = self.walls.short_wall_half_length
 
         if np.any(pos[0:2] > env_radius):
             return False
