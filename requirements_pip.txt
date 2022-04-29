@@ -1,0 +1,7 @@
+pybullet
+opencv-python
+stable-baselines3==1.1.0
+wandb==0.12.1
+gym>=0.20.0
+scipy==1.8.0
+
