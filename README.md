@@ -6,19 +6,26 @@ Authors: Niko Ciminelli, Bharat Kesari, Zachary Kratochvil
 This is code for our simulation of a ball-finding task with a Turtlebot.
 
 ## Configuring Environment
-First try using poetry  
+First try using poetry. This works especially well if you're
+not going to use a GPU.  
 ` pip install poetry ` or ` conda install poetry `  
-` poetry install `
-
-If that fails, try using conda  
-` conda install --file requirements.txt -c pytorch -c conda-forge -c pypi `
+then
+` poetry install `  
+  
+If that fails, try using conda and pip, which works with the A100 GPU with Python 3.9.0.  
+` conda install --file requirements_conda.txt -c pytorch `  
+then
+` pip install l -r requirements_pip.txt `
 
 ## Running Simulation from Pre-trained Model
 Not implemented yet.
 
 ## Training
-To replicate the submitted video, run:  
-` poetry run python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `
+To replicate the submitted video, run: 
+(with poetry)   
+` poetry run python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `  
+(without poetry)  
+` python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `
 
 ## Evaluating
 To generate the loss curve and other plots after a round of training, run:  
