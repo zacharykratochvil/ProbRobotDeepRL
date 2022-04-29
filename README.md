@@ -6,8 +6,12 @@ Authors: Niko Ciminelli, Bharat Kesari, Zachary Kratochvil
 This is code for our simulation of a ball-finding task with a Turtlebot.
 
 ## Configuring Environment
+First try using poetry  
 ` pip install poetry ` or ` conda install poetry `  
 ` poetry install `
+
+If that fails, try using conda  
+` conda install --file requirements.txt -c pytorch -c conda-forge -c pypi `
 
 ## Running Simulation from Pre-trained Model
 Not implemented yet.
