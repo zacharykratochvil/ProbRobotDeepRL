@@ -17,8 +17,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 self.layer_init(nn.Linear(1024, 64)),
                 nn.ReLU(),
-                self.layer_init(nn.Linear(64, output_size), std=output_std),
-                nn.Softmax()
+                self.layer_init(nn.Linear(64, output_size), std=output_std)
             )
 
     

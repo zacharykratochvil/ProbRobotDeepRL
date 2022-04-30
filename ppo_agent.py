@@ -275,12 +275,9 @@ class PPOAgent(nn.Module):
         self.writer.close()
 
     def save_model(self, path):
-        torch.save({
-            'policy': self.state_dict(),
-            'actor': self.actor.state_dict(),
-            'critic': self.critic.state_dict()
-        }, path)
+        torch.save(self.actor, path)
 
     def load_model(self, path):
         checkpoint = torch.load(path)
-        self.load_state_dict(checkpoint['policy'])
+        self.actor.load_state_dict(checkpoint)
+        self.actor.eval()

@@ -54,6 +54,8 @@ def parse_args():
         help='weather to capture videos of the agent performances (check out `videos` folder)')
     parser.add_argument('--checkpoint', type=str,
         help="the checkpoint of the model to load for testing")
+    parser.add_argument('--use-max', action="store_true", default=False,
+        help="whether to do exploration when testing, or always use the value maximizing policy, default is False: use exploration not max")
 
     # Algorithm specific arguments
     parser.add_argument('--num-envs', type=int, default=4,
@@ -164,18 +166,23 @@ def main(args):
         if type(args.checkpoint) == type(None) or os.path.exists(args.checkpoint) == False:
             raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
-        env = envs.envs.pop()
-
         agent = PPOAgent(args, envs, device)
         agent.load_model(args.checkpoint)
         
-        ob = env.reset()
+        ob = torch.tensor(envs.reset()).to(device)
         while True:
-            action = Categorical(agent.actor(ob))
-            ob, _, done, _ = env.step(action)
-            env.render()
+
+            if args.use_max:
+                action = max(agent.actor(ob))
+            else:
+                action_dist = Categorical(logits=agent.actor(ob))
+                action = action_dist.sample()
+
+            ob, _, done, _ = envs.step(action)
+            ob = torch.tensor(ob).to(device)
+
             if done:
-                ob = env.reset()
+                ob = torch.tensor(envs.reset()).to(device)
                 time.sleep(1/30)
         
 
