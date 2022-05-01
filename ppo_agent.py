@@ -275,7 +275,7 @@ class PPOAgent(nn.Module):
         self.writer.close()
 
     def save_model(self, path):
-        torch.save(self.actor, path)
+        torch.save(self.actor.state_dict(), path)
 
     def load_model(self, path):
         checkpoint = torch.load(path)
