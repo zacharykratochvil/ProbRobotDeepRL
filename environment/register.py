@@ -23,3 +23,11 @@ def register(id):
             id=id,
             entry_point='environment:ShamTestEnv',
         )
+
+    elif id == 'SimpleTurtleRLEnv-v0':
+        from .simple_turtle_rl_env import SimpleTurtleRLEnv
+        setattr(environment, "SimpleTurtleRLEnv", SimpleTurtleRLEnv)
+        gym.envs.register(
+            id=id,
+            entry_point='environment:SimpleTurtleRLEnv',
+        )

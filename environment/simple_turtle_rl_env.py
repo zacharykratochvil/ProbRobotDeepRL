@@ -9,11 +9,11 @@ from .walls import Walls
 import matplotlib.pyplot as plt
 import scipy.ndimage as sp_img
 
-class TurtleRLEnv(gym.Env):
+class SimpleTurtleRLEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, *args, **kwargs):
-        super(TurtleRLEnv,self).__init__()
+        super(SimpleTurtleRLEnv,self).__init__()
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
@@ -73,7 +73,7 @@ class TurtleRLEnv(gym.Env):
             self.done = True
             reward += 5000
         elif not is_valid:
-            reward += -1#0
+            reward += 0#-10
                 
         return observation, reward, self.done, dict()
 
@@ -100,17 +100,13 @@ class TurtleRLEnv(gym.Env):
         self.walls = Walls(self.client)
 
         # Set the bot and goal to random positions
-        collision_radius = .5
-
-        gx = np.random.uniform(-1.1,1.1)
-        gy = np.random.uniform(-1.1,1.1)
+        is_left = np.random.randint(0,2)
+        gx = 0
+        gy = (-.66,.66)[is_left]
         goal_pos = (gx, gy)
 
-        bx = gx; by = gy
-        while (bx > gx - collision_radius and bx < gx + collision_radius
-                and by > by - collision_radius and by < by + collision_radius):
-            bx = np.random.uniform(-1,1)
-            by = np.random.uniform(-1,1)
+        bx = -1.1
+        by = 0
         bot_pos = (bx, by)
 
         ## for testing the reward function
