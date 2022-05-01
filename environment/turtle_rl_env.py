@@ -71,7 +71,7 @@ class TurtleRLEnv(gym.Env):
         reward = -1
         if  avg_green - avg_red > threshold:
             self.done = True
-            reward += 1000
+            reward += 5000
         elif not is_valid:
             reward += -10
                 
@@ -112,7 +112,7 @@ class TurtleRLEnv(gym.Env):
             bx = np.random.uniform(-1,1)
             by = np.random.uniform(-1,1)
         bot_pos = (bx, by)
-        
+
         ## for testing the reward function
         #goal_pos = (bx + .5, by)
 
