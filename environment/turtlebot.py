@@ -45,7 +45,7 @@ class Turtlebot:
 
         # define discrete actions
         drive_magnitude = .1 # meters
-        turn_magnitude = 5*np.pi/180 # radians
+        turn_magnitude = 10*np.pi/180 # radians
 
         if action == FORWARD:
             new_pos = pos + drive_magnitude*unit_vec

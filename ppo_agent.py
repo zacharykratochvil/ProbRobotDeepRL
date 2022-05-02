@@ -1,5 +1,6 @@
 import time
 import os
+from attr import validate
 import gym
 import numpy as np
 import torch
@@ -164,24 +165,55 @@ class PPOAgent(nn.Module):
 
             '''
             for training we take each indices of the the batch amd shuffle them for any given epoch
+            
+            Optimizaing the policy and value network
+            
+            Calculate indecies to consider in weight update
+                (i.e. don't consider indecies after end of episode)
             '''
-            # Optimizaing the policy and value network
-            b_inds = np.arange(self.args.batch_size)
+            dones = self.dones.to("cpu").numpy()
+            is_done = np.sum(dones)
+
+            if is_done == True:
+                end = np.nonzero(dones[b_inds])[0][0]
+                if end == 0:
+                    minibatch_size = 1
+                else:
+                    # make sure minibatches are greater than size 1 if at all possible,
+                    # even if that means reducing the number of minibatches
+                    minibatch_size = 0
+                    end -= 1
+                    while minibatch_size < 2:
+                        end += 1
+                        minibatch_size = int(end/self.args.num_minibatches)
+            else:
+                end = self.args.batch_size
+                minibatch_size = int(end/self.args.num_minibatches)
+            
+            b_inds = np.arange(end)
+            
+
             clipfracs = []
             for epoch in range(self.args.update_epochs):
+
+                '''
+                Create mini-batches
+                '''
                 np.random.shuffle(b_inds)
-                for start in range(0, self.args.batch_size, self.args.minibatch_size):#looping through entire batch one minibatch at a time.. each minibatch == 128 random batch indices
-                    '''
-                    Calculate indecies to consider in weight update
-                        (i.e. don't consider indecies after end of episode)
-                    '''
-                    dones = self.dones.to("cpu").numpy()
-                    is_done = np.sum(dones)
-                    if is_done == True:
-                        end = start + np.nonzero(dones[b_inds])[0]
-                    else:
-                        end = start + self.args.minibatch_size
-                    mb_inds = b_inds[start:end]
+                split = list(range(0, len(b_inds)-1, minibatch_size))
+                # merge last two minibatches if they went in unevenly
+                if split[-1] - split[-2] < minibatch_size:
+                    split.pop()
+                split.append(len(b_inds)-1)
+                
+                '''
+                loop through minibatches
+                '''
+                for mini_i in range(len(split)):
+                    start = split[mini_i]
+                    end = split[mini_i+1]
+                    mb_inds = sorted(b_inds[start:end])
+                    print("minibatch " + str(mb_inds))
 
                     '''
                     Training Fully begins!!!
@@ -201,7 +233,7 @@ class PPOAgent(nn.Module):
                     PPO adv normalization
                     '''
                     mb_advantages = b_advantages[mb_inds]
-                    if self.args.norm_adv:
+                    if self.args.norm_adv and minibatch_size > 1:
                         mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
                     # Policy loss/ clipped policy objective

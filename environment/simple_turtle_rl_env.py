@@ -68,12 +68,12 @@ class SimpleTurtleRLEnv(gym.Env):
         avg_green = np.mean(self.rendered_img.get_array()[:,:,1])
         threshold = 50
 
-        reward = -1
+        reward = 0
         if  avg_green - avg_red > threshold:
             self.done = True
             reward += 5000
         elif not is_valid:
-            reward += 0#-10
+            reward += -10
                 
         return observation, reward, self.done, dict()
 
