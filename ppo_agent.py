@@ -133,14 +133,6 @@ class PPOAgent(nn.Module):
     def train(self, num_steps, optimizer, run_name=""):
         num_envs = len(self.envs.env_fns)
 
-        # ALGO Logic: Storage setup
-        self.obs = torch.zeros((num_steps, num_envs) + self.envs.single_observation_space.shape).to(self.device)
-        self.actions = torch.zeros((num_steps, num_envs) + self.envs.single_action_space.shape).to(self.device)
-        self.logprobs = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.rewards = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.dones = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.values = torch.zeros((num_steps, num_envs)).to(self.device)
-
         # TRY NOT TO MODIFY: start the game
         start_time = time.time()
         self.global_step = 0
@@ -155,6 +147,14 @@ class PPOAgent(nn.Module):
         )
 
         for update in range(1, num_updates + 1):
+
+            # ALGO Logic: Storage setup (moved inside loop to account for early breaking)
+            self.obs = torch.zeros((num_steps, num_envs) + self.envs.single_observation_space.shape).to(self.device)
+            self.actions = torch.zeros((num_steps, num_envs) + self.envs.single_action_space.shape).to(self.device)
+            self.logprobs = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.rewards = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.dones = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.values = torch.zeros((num_steps, num_envs)).to(self.device)
 
             # Annealing the rate if instructed to do so.
             if self.args.anneal_lr:
