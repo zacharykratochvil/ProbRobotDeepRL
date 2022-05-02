@@ -57,34 +57,19 @@ class PPOAgent(nn.Module):
             '''
             next_obs, reward, done, info = self.envs.step(action.cpu().numpy())
             self.rewards[step] = torch.tensor(reward).to(self.device).view(-1)
-            # current_step = self.rewards[step][0].item()
         
-
-            #print('as just number', self.rewards[step][0].item())
-            #print('*'*30)
-            #print('at each step',self.rewards[step])
-            #print('*'*30)
             next_obs, next_done = torch.Tensor(next_obs).to(self.device), torch.Tensor(done).to(self.device)
             self.next_obs = next_obs
             self.next_done = next_done
-            #print('*'*30)
-            #print('whole tensor',self.rewards)
-            #print('*'*30)
+            
             if done == True:
+                self.global_step += 1 * num_envs
+                self.obs[step] = next_obs
+                self.dones[step] = next_done
                 break
             else:
                 step += 1
 
-            #'''
-            #This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
-            #'''
-            #for item in info:
-            #    if "episode" in item.keys():
-            #        print(f"global_step={self.global_step}, episodic_return={item['episode']['r']}")
-            #        self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
-            #        self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
-            #        break
-        
         self.writer.add_scalar("charts/episodic_return", np.sum(self.rewards.cpu().numpy()), self.global_step)
         self.writer.add_scalar("charts/episodic_length", step, self.global_step)    
 
@@ -186,7 +171,16 @@ class PPOAgent(nn.Module):
             for epoch in range(self.args.update_epochs):
                 np.random.shuffle(b_inds)
                 for start in range(0, self.args.batch_size, self.args.minibatch_size):#looping through entire batch one minibatch at a time.. each minibatch == 128 random batch indices
-                    end = start + self.args.minibatch_size
+                    '''
+                    Calculate indecies to consider in weight update
+                        (i.e. don't consider indecies after end of episode)
+                    '''
+                    dones = self.dones.to("cpu").numpy()
+                    is_done = np.sum(dones)
+                    if is_done == True:
+                        end = start + np.nonzero(dones[b_inds])[0]
+                    else:
+                        end = start + self.args.minibatch_size
                     mb_inds = b_inds[start:end]
 
                     '''
@@ -207,10 +201,8 @@ class PPOAgent(nn.Module):
                     PPO adv normalization
                     '''
                     mb_advantages = b_advantages[mb_inds]
-                    #print(mb_advantages)
                     if self.args.norm_adv:
                         mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
-                    #print(mb_advantages)
 
                     # Policy loss/ clipped policy objective
                     pg_loss1 = -mb_advantages * ratio
