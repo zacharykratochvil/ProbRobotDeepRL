@@ -182,10 +182,10 @@ class PPOAgent(nn.Module):
                     # make sure minibatches are greater than size 1 if at all possible,
                     # even if that means reducing the number of minibatches
                     minibatch_size = 0
-                    end -= 1
+                    counting_end = end - 1
                     while minibatch_size < 2:
-                        end += 1
-                        minibatch_size = int(end/self.args.num_minibatches)
+                        counting_end += 1
+                        minibatch_size = int(counting_end/self.args.num_minibatches)
             else:
                 end = self.args.batch_size
                 minibatch_size = int(end/self.args.num_minibatches)
