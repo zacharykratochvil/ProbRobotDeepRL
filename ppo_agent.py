@@ -175,7 +175,7 @@ class PPOAgent(nn.Module):
             is_done = np.sum(dones)
 
             if is_done == True:
-                end = np.nonzero(dones[b_inds])[0][0]
+                end = np.nonzero(dones[b_inds])[0][0] + 1
                 if end == 0:
                     minibatch_size = 1
                 else:
@@ -185,7 +185,7 @@ class PPOAgent(nn.Module):
                     counting_end = end - 1
                     while minibatch_size < 2:
                         counting_end += 1
-                        minibatch_size = int(counting_end/self.args.num_minibatches)
+                        minibatch_size = int(np.round(counting_end/self.args.num_minibatches))
             else:
                 end = self.args.batch_size
                 minibatch_size = int(end/self.args.num_minibatches)
@@ -200,9 +200,9 @@ class PPOAgent(nn.Module):
                 Create mini-batches
                 '''
                 np.random.shuffle(b_inds)
-                split = list(range(0, len(b_inds)-1, minibatch_size))
+                split = list(range(0, len(b_inds), minibatch_size))
                 # merge last two minibatches if they went in unevenly
-                if split[-1] - split[-2] < minibatch_size:
+                if len(b_inds) - split[-1] < minibatch_size:
                     split.pop()
                 split.append(len(b_inds)-1)
                 
