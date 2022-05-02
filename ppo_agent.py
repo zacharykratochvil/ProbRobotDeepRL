@@ -209,7 +209,7 @@ class PPOAgent(nn.Module):
                 '''
                 loop through minibatches
                 '''
-                for mini_i in range(len(split)):
+                for mini_i in range(len(split)-1):
                     start = split[mini_i]
                     end = split[mini_i+1]
                     mb_inds = sorted(b_inds[start:end])

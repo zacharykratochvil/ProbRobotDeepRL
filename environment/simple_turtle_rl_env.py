@@ -73,7 +73,7 @@ class SimpleTurtleRLEnv(gym.Env):
             self.done = True
             reward += 5000
         elif not is_valid:
-            reward += -10
+            reward += 0#-10
                 
         return observation, reward, self.done, dict()
 
