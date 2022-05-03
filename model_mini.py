@@ -3,6 +3,20 @@ import torch.nn as nn
 from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
 
+################################## set device ##################################
+print("============================================================================================")
+# set device to cpu or cuda
+device = torch.device('cpu')
+if(torch.cuda.is_available()):
+    # torch.cuda.set_device(0)     
+    device = torch.device('cuda') 
+    torch.cuda.empty_cache()
+    print("Device set to : " + str(torch.cuda.get_device_name(device)))
+else:
+    print("Device set to : cpu")
+print("============================================================================================")
+
+
 class ActorCritic(nn.Module):
     def __init__(self, state_dim, action_dim, has_continuous_action_space, action_std_init):
         super(ActorCritic, self).__init__()
