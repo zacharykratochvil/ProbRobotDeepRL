@@ -17,7 +17,7 @@ class TurtleRLEnv(gym.Env):
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
-                                high=1, shape=(3,50,150), dtype=np.float32)
+                                high=1, shape=(3,100,100), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
         # select whether to show pybullet's inbuilt gui
@@ -106,12 +106,14 @@ class TurtleRLEnv(gym.Env):
         gy = np.random.uniform(-1.1,1.1)
         goal_pos = (gx, gy)
 
-        bx = gx; by = gy
-        while (bx > gx - collision_radius and bx < gx + collision_radius
-                and by > by - collision_radius and by < by + collision_radius):
-            bx = np.random.uniform(-1,1)
-            by = np.random.uniform(-1,1)
-        bot_pos = (bx, by)
+        #bx = gx; by = gy
+        #while (bx > gx - collision_radius and bx < gx + collision_radius
+        #        and by > by - collision_radius and by < by + collision_radius):
+        #    bx = np.random.uniform(-1,1)
+        #    by = np.random.uniform(-1,1)
+        bot_pos = [0, 0]
+        bot_angle = np.random.uniform(0,2*np.pi)
+        bot_ori = p.getQuaternionFromEuler((0,0,bot_angle))
 
         ## for testing the reward function
         #goal_pos = (bx + .5, by)
@@ -119,6 +121,9 @@ class TurtleRLEnv(gym.Env):
         # Create goal and bot in pybullet
         self.bot = turtlebot.Turtlebot(self.client, bot_pos)
         self.goal = Ball(self.client, goal_pos)
+
+        bot_pos.append(0)
+        self.bot.teleport(bot_pos,bot_ori)
 
         # Get observation to return
         pos, ori, vel = self.bot.get_observation()
@@ -201,7 +206,7 @@ class TurtleRLEnv(gym.Env):
         observation = np.transpose(img_array[0][0:480,0:640,0:3],[2,0,1])
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        # (1, 0.41666667, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
+        # (1, 0.2083333333, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
         observation = sp_img.zoom(observation, zoom = (1, 0.2083333333, 0.15625), order=1)
         # normalize for 256-bit color
         observation = observation/255

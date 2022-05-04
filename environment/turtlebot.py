@@ -28,6 +28,11 @@ class Turtlebot:
                               basePosition=[pos[0], pos[1], 0],
                               physicsClientId=client)
 
+    # teleport bot to given coords
+    def teleport(self, new_pos, new_ang):
+        p.resetBasePositionAndOrientation(self.id,
+                    new_pos, new_ang, self.client)
+
     # actions are defined as constants in this module
     def apply_action(self, action):
 
@@ -38,32 +43,27 @@ class Turtlebot:
         unit_vec = np.array([unit_vec[0], unit_vec[1], 0])
         ang = np.array(p.getEulerFromQuaternion(quat))
 
-        # teleport bot to given coords
-        def teleport(new_pos, new_ang):
-            p.resetBasePositionAndOrientation(self.id,
-                        new_pos, new_ang, self.client)
-
         # define discrete actions
         drive_magnitude = .1 # meters
         turn_magnitude = 10*np.pi/180 # radians
 
         if action == FORWARD:
             new_pos = pos + drive_magnitude*unit_vec
-            teleport(new_pos, quat)
+            self.teleport(new_pos, quat)
 
         elif action == BACKWARD:
             new_pos = pos - drive_magnitude*unit_vec
-            teleport(new_pos, quat)
+            self.teleport(new_pos, quat)
 
         elif action == LEFT:
             ang[2] += turn_magnitude
             new_quat = p.getQuaternionFromEuler(ang)
-            teleport(pos, new_quat)
+            self.teleport(pos, new_quat)
 
         elif action == RIGHT:
             ang[2] -= turn_magnitude
             new_quat = p.getQuaternionFromEuler(ang)
-            teleport(pos, new_quat)
+            self.teleport(pos, new_quat)
 
         else:
             raise Exception(f"{action} is not a valid action, must be integer [0,3]")
