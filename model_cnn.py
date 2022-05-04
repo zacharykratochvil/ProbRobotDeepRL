@@ -13,7 +13,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 nn.MaxPool2d(2,2),#output: 38x13x64
                 nn.Flatten(),#input: 38x13x64... output: 31_616
-                self.layer_init(nn.Linear(28416, 1024)),#
+                self.layer_init(nn.Linear(40_000, 1024)),#
                 nn.ReLU(),
                 self.layer_init(nn.Linear(1024, 64)),
                 nn.ReLU(),
