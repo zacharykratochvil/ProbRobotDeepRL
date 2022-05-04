@@ -30,6 +30,10 @@ def parse_args():
         help='the name of this experiment')
     parser.add_argument('--gym-id', type=str, default="TurtleRLEnv-v0",
         help='the id of the gym environment')
+    parser.add_argument('--reward_scheme', type=str, default="sparse",
+        help='sparse vs. dense')
+    parser.add_argument('--model', type=str, default="cnn",
+        help='cnn gives our cnn model, mini gives Yash\'s smaller cnn model')
     parser.add_argument('--learning-rate', type=float, default=2.5e-4,
         help='the learning rate of the optimizer')
     parser.add_argument('--seed', type=int, default=None,
@@ -92,10 +96,10 @@ def parse_args():
     
     return args
 
-def make_env(seed, gym_id, idx, capture_video, gui, run_name):
+def make_env(seed, gym_id, idx, capture_video, gui, run_name, reward_scheme):
     def env_fn():
         register(gym_id)
-        env = gym.make(gym_id, gui=gui)
+        env = gym.make(gym_id, gui=gui, reward_scheme=reward_scheme)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
@@ -122,7 +126,7 @@ def main(args):
 
     # env setup
     envs = gym.vector.SyncVectorEnv(
-        [make_env(args.seed + i, args.gym_id, i, args.capture_video, args.gui, run_name) for i in range(args.num_envs)]
+        [make_env(args.seed + i, args.gym_id, i, args.capture_video, args.gui, run_name, args.reward_scheme) for i in range(args.num_envs)]
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
@@ -158,7 +162,7 @@ def main(args):
         args.model_dir = os.sep.join(["model",run_name])
         os.makedirs(args.model_dir)
 
-        agent = PPOAgent(args, envs, device)
+        agent = PPOAgent(args, envs, model, device)
 
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)

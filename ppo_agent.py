@@ -7,15 +7,19 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from model_cnn import Model
-
 
 class PPOAgent(nn.Module):
-    def __init__(self, args, envs, device):
+    def __init__(self, args, envs, model, device):
         super(PPOAgent,self).__init__()
 
-        self.critic = Model(1, 1.0)
-        self.actor = Model(4, .01)
+        if model == "cnn":
+            from model_cnn import Model
+            self.critic = Model(1, 1.0)
+            self.actor = Model(4, .01)
+        elif model == "mini":
+            from model_mini import Model
+            self.critic = Model(1)
+            self.actor = Model(4)
 
         self.args = args
         self.envs = envs

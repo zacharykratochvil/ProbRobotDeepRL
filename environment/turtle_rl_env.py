@@ -37,6 +37,7 @@ class TurtleRLEnv(gym.Env):
         self.prev_dist_to_goal = None
         self.rendered_img = None
         self.render_rot_matrix = None
+        self.reward_scheme = kwargs["reward_scheme"]
 
     ######
     # advances the simulation one step, calculating the reward
@@ -66,28 +67,36 @@ class TurtleRLEnv(gym.Env):
 
         avg_red = np.mean(self.rendered_img.get_array()[:,:,0])
         avg_green = np.mean(self.rendered_img.get_array()[:,:,1])
-        threshold1 = 50
-        threshold2 = 15
-        threshold3 = 5
-
-        reward = -1
-        if  avg_green - avg_red > threshold1:
-            self.done = True
-            reward += 5000
-        elif avg_green - avg_red > threshold2:
-            reward += 100
-        elif avg_green - avg_red > threshold3:
-            reward += 10
-
-        if not is_valid:
-            reward += -1
         
-        #reward = -1
-        #if  avg_green - avg_red > threshold:
-        #    self.done = True
-        #    reward += 5000
-        #elif not is_valid:
-        #    reward += -1#0
+        if self.reward_scheme == "dense":
+            threshold1 = 50
+            threshold2 = 15
+            threshold3 = 5
+
+            reward = -1
+            if  avg_green - avg_red > threshold1:
+                self.done = True
+                reward += 5000
+            elif avg_green - avg_red > threshold2:
+                reward += 100
+            elif avg_green - avg_red > threshold3:
+                reward += 10
+
+            if not is_valid:
+                reward += -1
+
+        elif self.reward_scheme == "sparse":
+            threshold = 50
+
+            reward = -1
+            if  avg_green - avg_red > threshold:
+                self.done = True
+                reward += 5000
+            elif not is_valid:
+                reward += -1
+
+        else:
+            raise Exception("reward_scheme must be either dense or sparse")
                 
         return observation, reward, self.done, dict()
 
