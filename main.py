@@ -162,7 +162,7 @@ def main(args):
         args.model_dir = os.sep.join(["model",run_name])
         os.makedirs(args.model_dir)
 
-        agent = PPOAgent(args, envs, model, device)
+        agent = PPOAgent(args, envs, args.model, device)
 
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)
