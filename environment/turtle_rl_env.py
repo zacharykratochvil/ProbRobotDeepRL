@@ -83,7 +83,7 @@ class TurtleRLEnv(gym.Env):
                 reward += 10
 
             if not is_valid:
-                reward += -1
+                reward += 0#-1
 
         elif self.reward_scheme == "sparse":
             threshold = 50

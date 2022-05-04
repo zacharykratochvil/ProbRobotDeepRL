@@ -170,7 +170,7 @@ def main(args):
         if type(args.checkpoint) == type(None) or os.path.exists(args.checkpoint) == False:
             raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
-        agent = PPOAgent(args, envs, device)
+        agent = PPOAgent(args, envs, args.model, device)
         agent.load_model(args.checkpoint)
         
         ob = torch.tensor(envs.reset()).to(device)
