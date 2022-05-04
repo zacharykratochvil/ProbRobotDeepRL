@@ -17,7 +17,7 @@ class SimpleTurtleRLEnv(gym.Env):
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
-                                high=1, shape=(3,50,150), dtype=np.float32)
+                                high=1, shape=(3,100,100), dtype=np.float32)
         self.np_random, _ = gym.utils.seeding.np_random()
 
         # select whether to show pybullet's inbuilt gui
@@ -201,10 +201,11 @@ class SimpleTurtleRLEnv(gym.Env):
         # scale to ~480x640 the size of the robot's image
         img_array = self.rendered_img.make_image(None,magnification=1.3)
         #crop out robot and reorder axes for pytorch
-        observation = np.transpose(img_array[0][0:240,0:640,0:3],[2,0,1])
+        observation = np.transpose(img_array[0][0:480,0:640,0:3],[2,0,1])
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        observation = sp_img.zoom(observation, zoom = (1, 0.2083333333, 0.234375), order=1)
+        # (1, 0.41666667, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
+        observation = sp_img.zoom(observation, zoom = (1, 0.2083333333, 0.15625), order=1)
         # normalize for 256-bit color
         observation = observation/255
         return observation

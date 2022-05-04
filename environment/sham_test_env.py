@@ -8,7 +8,7 @@ class ShamTestEnv(gym.Env):
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
-                                high=1, shape=(3,50,150), dtype=np.float32)
+                                high=1, shape=(3,100,100), dtype=np.float32)
         
         # global state of environment
         self.observation = None
@@ -55,10 +55,11 @@ class ShamTestEnv(gym.Env):
     ######
     def make_observation(self):
         # randomly generate input the same size as we get from our actual camera
-        self.observation = np.random.rand(3,240,640)
+        self.observation = np.random.rand(3,480,640)
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        self.observation = sp_img.zoom(self.observation, zoom = (1, 0.2083333333, 0.234375), order=1)
+        # (1, 0.41666667, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
+        self.observation = sp_img.zoom(self.observation, zoom = (1, 0.2083333333, 0.15625), order=1)
 
     ######
     # would output an image of the environment, but this is a test so it is not used
