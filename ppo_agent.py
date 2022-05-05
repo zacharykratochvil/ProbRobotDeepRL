@@ -273,15 +273,24 @@ class PPOAgent(nn.Module):
             print("SPS:", int(self.global_step / (time.time() - start_time)))
             self.writer.add_scalar("charts/SPS", int(self.global_step / (time.time() - start_time)), self.global_step)
             if update % 10 == 0:
-                self.save_model(os.sep.join([self.args.model_dir,f"model{update}.pth"]))
+                self.save_model(os.sep.join([self.args.model_dir,f"model{update}"]))
 
         self.envs.close()
         self.writer.close()
 
     def save_model(self, path):
-        torch.save(self.actor.state_dict(), path)
+        torch.save(self.actor.state_dict(), "_".join([path,"actor.pth"]))
+        torch.save(self.critic.state_dict(), "_".join([path,"critic.pth"]))
 
-    def load_model(self, path):
+    def load_actor(self, path):
         checkpoint = torch.load(path)
         self.actor.load_state_dict(checkpoint)
         self.actor.eval()
+
+    def load_model(self, path):
+        actor = torch.load("_".join([path,"actor.pth"]))
+        critic = torch.load("_".join([path,"critic.pth"]))
+        self.actor.load_state_dict(actor)
+        self.actor.eval()
+        self.critic.load_state_dict(critic)
+        self.critic.eval()

@@ -56,8 +56,10 @@ def parse_args():
         help="the entity (team) of wandb's project")
     parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
         help='weather to capture videos of the agent performances (check out `videos` folder)')
-    parser.add_argument('--checkpoint', type=str,
-        help="the checkpoint of the model to load for testing")
+    parser.add_argument('--checkpoint-actor', type=str,
+        help="the checkpoint of the model to load for testing & training")
+    parser.add_argument('--checkpoint-critic', type=str,
+        help="the checkpoint of the model to load for training")
     parser.add_argument('--use-max', action="store_true", default=False,
         help="whether to do exploration when testing, or always use the value maximizing policy, default is False: use exploration not max")
 
@@ -171,7 +173,7 @@ def main(args):
             raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
         agent = PPOAgent(args, envs, args.model, device)
-        agent.load_model(args.checkpoint)
+        agent.load_actor(args.checkpoint_actor)
         
         ob = torch.tensor(envs.reset()).to(device)
         while True:
