@@ -18,7 +18,7 @@ then
 ` pip install l -r requirements_pip.txt `
 
 ## Running Simulation from Pre-trained Model
-Not implemented yet.
+For simple task, use main__1__1651713571/model200_actor.pth
 
 ## Training
 To replicate the submitted video, run:  

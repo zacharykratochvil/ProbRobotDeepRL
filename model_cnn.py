@@ -19,7 +19,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 self.layer_init(nn.Linear(64, output_size), std=output_std)
             )
-
+        self.frozen_layers = []
     
     def layer_init(self, layer, std=np.sqrt(2), bias_const=0.0):
         nn.init.orthogonal_(layer.weight, std)
@@ -28,4 +28,23 @@ class Model(nn.Module):
 
 
     def forward(self, x):
+        # make sure frozen parameters are still frozen
+        for i, layer in enumerate(self.net.children()):
+            if i in self.frozen_layers:
+                for param in layer.parameters():
+                    param.requires_grad = False
+
+        # run forward on the network
         return self.net.forward(x)
+
+
+    # freeze weights of layers in list for transfer learning
+    def freeze(self, layers):
+        self.frozen_layers = set(layers)
+
+    # re-initialize weights of layers in list
+    def reset(self, layers):
+        layers = set(layers)
+        for i, layer in enumerate(self.net.children()):
+            if i in layers:
+                self.layer_init(layer)

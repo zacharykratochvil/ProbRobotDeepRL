@@ -56,10 +56,14 @@ def parse_args():
         help="the entity (team) of wandb's project")
     parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
         help='weather to capture videos of the agent performances (check out `videos` folder)')
-    parser.add_argument('--checkpoint-actor', type=str,
-        help="the checkpoint of the model to load for testing & training")
-    parser.add_argument('--checkpoint-critic', type=str,
-        help="the checkpoint of the model to load for training")
+    parser.add_argument('--checkpoint-actor', type=str, default="",
+        help="the checkpoint of the model to load for testing, formerly just --checkpoint")
+    parser.add_argument('--checkpoint-model', type=str, default="",
+        help="the checkpoint of the model to load for training only. provide the filename root only, e.g. modelXX")
+    parser.add_argument('--frozen-layers', type=int, nargs="+", default=[],
+        help="layers in the checkpoint to freeze for transfer learning")
+    parser.add_argument('--zeroed-layers', type=int, nargs="+", default=[],
+        help="layers in the checkpoint to re-initialize")
     parser.add_argument('--use-max', action="store_true", default=False,
         help="whether to do exploration when testing, or always use the value maximizing policy, default is False: use exploration not max")
 
@@ -165,11 +169,13 @@ def main(args):
         os.makedirs(args.model_dir)
 
         agent = PPOAgent(args, envs, args.model, device)
+        if args.checkpoint_model != "":
+            agent.load_model(args.checkpoint_model, args.frozen_layers, args.zeroed_layers)
 
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)
     else:
-        if type(args.checkpoint) == type(None) or os.path.exists(args.checkpoint) == False:
+        if args.checkpoint_actor == "" or os.path.exists(args.checkpoint_actor) == False:
             raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
         agent = PPOAgent(args, envs, args.model, device)

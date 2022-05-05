@@ -282,15 +282,19 @@ class PPOAgent(nn.Module):
         torch.save(self.actor.state_dict(), "_".join([path,"actor.pth"]))
         torch.save(self.critic.state_dict(), "_".join([path,"critic.pth"]))
 
+    # for testing only
     def load_actor(self, path):
         checkpoint = torch.load(path)
         self.actor.load_state_dict(checkpoint)
         self.actor.eval()
 
-    def load_model(self, path):
+    # for training only
+    def load_model(self, path, layers_to_freeze=[], layers_to_zero=[]):
         actor = torch.load("_".join([path,"actor.pth"]))
         critic = torch.load("_".join([path,"critic.pth"]))
         self.actor.load_state_dict(actor)
-        self.actor.eval()
         self.critic.load_state_dict(critic)
-        self.critic.eval()
+        self.actor.freeze(layers_to_freeze)
+        self.actor.reset(layers_to_zero)
+        self.critic.freeze(layers_to_freeze)
+        self.critic.reset(layers_to_zero)
