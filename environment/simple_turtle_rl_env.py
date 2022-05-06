@@ -9,11 +9,11 @@ from .walls import Walls
 import matplotlib.pyplot as plt
 import scipy.ndimage as sp_img
 
-class TurtleRLEnv(gym.Env):
+class SimpleTurtleRLEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, *args, **kwargs):
-        super(TurtleRLEnv,self).__init__()
+        super(SimpleTurtleRLEnv,self).__init__()
         # defines the expected input and output of the environment
         self.action_space = gym.spaces.Discrete(4)
         self.observation_space = gym.spaces.box.Box(low=0,
@@ -37,7 +37,6 @@ class TurtleRLEnv(gym.Env):
         self.prev_dist_to_goal = None
         self.rendered_img = None
         self.render_rot_matrix = None
-        self.reward_scheme = kwargs["reward_scheme"]
 
     ######
     # advances the simulation one step, calculating the reward
@@ -67,36 +66,21 @@ class TurtleRLEnv(gym.Env):
 
         avg_red = np.mean(self.rendered_img.get_array()[:,:,0])
         avg_green = np.mean(self.rendered_img.get_array()[:,:,1])
-        
-        if self.reward_scheme == "dense":
-            threshold1 = 50
-            threshold2 = 15
-            threshold3 = 5
+        threshold1 = 50
+        threshold2 = 15
+        threshold3 = 5
 
-            reward = -1
-            if  avg_green - avg_red > threshold1:
-                self.done = True
-                reward += 5000
-            elif avg_green - avg_red > threshold2:
-                reward += 100
-            elif avg_green - avg_red > threshold3:
-                reward += 10
+        reward = 0
+        if  avg_green - avg_red > threshold1:
+            self.done = True
+            reward += 5000
+        elif avg_green - avg_red > threshold2:
+            reward += 100
+        elif avg_green - avg_red > threshold3:
+            reward += 10
 
-            if not is_valid:
-                reward += 0#-1
-
-        elif self.reward_scheme == "sparse":
-            threshold = 50
-
-            reward = -1
-            if  avg_green - avg_red > threshold:
-                self.done = True
-                reward += 5000
-            elif not is_valid:
-                reward += -1
-
-        else:
-            raise Exception("reward_scheme must be either dense or sparse")
+        if not is_valid:
+            reward += -10
                 
         return observation, reward, self.done, dict()
 
@@ -123,20 +107,14 @@ class TurtleRLEnv(gym.Env):
         self.walls = Walls(self.client)
 
         # Set the bot and goal to random positions
-        collision_radius = .5
-
-        gx = np.random.uniform(-1.1,1.1)
-        gy = np.random.uniform(-1.1,1.1)
+        is_left = np.random.randint(0,2)
+        gx = 0
+        gy = (-.66,.66)[is_left]
         goal_pos = (gx, gy)
 
-        bx = gx; by = gy
-        while (bx > gx - collision_radius and bx < gx + collision_radius
-                and by > by - collision_radius and by < by + collision_radius):
-            bx = np.random.uniform(-1,1)
-            by = np.random.uniform(-1,1)
-        bot_pos = [bx, by]
-        #bot_angle = np.random.uniform(0,2*np.pi)
-        #bot_ori = p.getQuaternionFromEuler((0,0,bot_angle))
+        bx = -1.1
+        by = 0
+        bot_pos = (bx, by)
 
         ## for testing the reward function
         #goal_pos = (bx + .5, by)
@@ -144,9 +122,6 @@ class TurtleRLEnv(gym.Env):
         # Create goal and bot in pybullet
         self.bot = turtlebot.Turtlebot(self.client, bot_pos)
         self.goal = Ball(self.client, goal_pos)
-
-        bot_pos.append(0)
-        #self.bot.teleport(bot_pos,bot_ori)
 
         # Get observation to return
         pos, ori, vel = self.bot.get_observation()
@@ -229,7 +204,7 @@ class TurtleRLEnv(gym.Env):
         observation = np.transpose(img_array[0][0:480,0:640,0:3],[2,0,1])
         #change size obs = transoformation... to 50,150
         # (1, 0.2083333333, 0.234375) 240x640 to 50x150
-        # (1, 0.2083333333, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
+        # (1, 0.41666667, 0.15625) 480x640 to 100x100!!!!!!!!Yash version
         observation = sp_img.zoom(observation, zoom = (1, 0.2083333333, 0.15625), order=1)
         # normalize for 256-bit color
         observation = observation/255

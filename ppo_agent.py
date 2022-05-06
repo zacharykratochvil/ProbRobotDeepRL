@@ -1,5 +1,5 @@
 import time
-
+import os
 import gym
 import numpy as np
 import torch
@@ -9,28 +9,21 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class PPOAgent(nn.Module):
-    def __init__(self, args, envs, device):
-        super(PPOAgent, self).__init__()
+    def __init__(self, args, envs, model, device):
+        super(PPOAgent,self).__init__()
 
-        def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-            torch.nn.init.orthogonal_(layer.weight, std)
-            torch.nn.init.constant_(layer.bias, bias_const)
-            return layer
-
-        self.critic = nn.Sequential(
-            layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 1), std=1.0),
-        )
-        self.actor = nn.Sequential(
-            layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, 64)),
-            nn.Tanh(),
-            layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01),
-        )
+        if model == "cnn":
+            from model_cnn import Model
+            self.critic = Model(1, 1.0)
+            self.actor = Model(4, .01)
+        elif model == "mini":
+            from model_mini import Model
+            self.critic = Model(1)
+            self.actor = Model(4)
+        elif model == "og":
+            from model import Model
+            self.critic = Model(1, 1.0)
+            self.actor = Model(4, .01)
 
         self.args = args
         self.envs = envs
@@ -41,7 +34,6 @@ class PPOAgent(nn.Module):
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
-        x[np.isnan(x)] = 0
         logits = self.actor(x)
         probs = Categorical(logits=logits)
         if action is None:
@@ -50,7 +42,8 @@ class PPOAgent(nn.Module):
 
     def rollout(self, num_steps, num_envs, next_obs, next_done):
         #policy rollout is its own loop
-        for step in range(0, num_steps):
+        step = 0
+        while step < num_steps:
             self.global_step += 1 * num_envs
             self.obs[step] = next_obs
             self.dones[step] = next_done
@@ -72,19 +65,36 @@ class PPOAgent(nn.Module):
             '''
             next_obs, reward, done, info = self.envs.step(action.cpu().numpy())
             self.rewards[step] = torch.tensor(reward).to(self.device).view(-1)
+            # current_step = self.rewards[step][0].item()
+        
+
+            #print('as just number', self.rewards[step][0].item())
+            #print('*'*30)
+            #print('at each step',self.rewards[step])
+            #print('*'*30)
             next_obs, next_done = torch.Tensor(next_obs).to(self.device), torch.Tensor(done).to(self.device)
             self.next_obs = next_obs
             self.next_done = next_done
+            #print('*'*30)
+            #print('whole tensor',self.rewards)
+            #print('*'*30)
+            #if done == True:
+            #    break
+            #else:
+            step += 1
 
-            '''
-            This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
-            '''
-            for item in info:
-                if "episode" in item.keys():
-                    print(f"global_step={self.global_step}, episodic_return={item['episode']['r']}")
-                    self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
-                    self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
-                    break
+            #'''
+            #This loop gives us our whole episodic return and prints it out... there will be 25_000 time steps/whatever we put in total-timesteps
+            #'''
+            #for item in info:
+            #    if "episode" in item.keys():
+            #        print(f"global_step={self.global_step}, episodic_return={item['episode']['r']}")
+            #        self.writer.add_scalar("charts/episodic_return", item["episode"]["r"], self.global_step)
+            #        self.writer.add_scalar("charts/episodic_length", item["episode"]["l"], self.global_step)
+            #        break
+        
+        self.writer.add_scalar("charts/episodic_return", np.sum(self.rewards.cpu().numpy()), self.global_step)
+        self.writer.add_scalar("charts/episodic_length", step, self.global_step)    
 
 
     def advantage(self, num_steps, gamma, gae=False, gae_lambda=None):
@@ -131,14 +141,6 @@ class PPOAgent(nn.Module):
     def train(self, num_steps, optimizer, run_name=""):
         num_envs = len(self.envs.env_fns)
 
-        # ALGO Logic: Storage setup
-        self.obs = torch.zeros((num_steps, num_envs) + self.envs.single_observation_space.shape).to(self.device)
-        self.actions = torch.zeros((num_steps, num_envs) + self.envs.single_action_space.shape).to(self.device)
-        self.logprobs = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.rewards = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.dones = torch.zeros((num_steps, num_envs)).to(self.device)
-        self.values = torch.zeros((num_steps, num_envs)).to(self.device)
-
         # TRY NOT TO MODIFY: start the game
         start_time = time.time()
         self.global_step = 0
@@ -153,6 +155,14 @@ class PPOAgent(nn.Module):
         )
 
         for update in range(1, num_updates + 1):
+
+            # ALGO Logic: Storage setup (moved inside loop to account for early breaking)
+            self.obs = torch.zeros((num_steps, num_envs) + self.envs.single_observation_space.shape).to(self.device)
+            self.actions = torch.zeros((num_steps, num_envs) + self.envs.single_action_space.shape).to(self.device)
+            self.logprobs = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.rewards = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.dones = torch.zeros((num_steps, num_envs)).to(self.device)
+            self.values = torch.zeros((num_steps, num_envs)).to(self.device)
 
             # Annealing the rate if instructed to do so.
             if self.args.anneal_lr:
@@ -266,6 +276,29 @@ class PPOAgent(nn.Module):
             self.writer.add_scalar("losses/explained_variance", explained_var, self.global_step)
             print("SPS:", int(self.global_step / (time.time() - start_time)))
             self.writer.add_scalar("charts/SPS", int(self.global_step / (time.time() - start_time)), self.global_step)
+            if update % 10 == 0:
+                self.save_model(os.sep.join([self.args.model_dir,f"model{update}"]))
 
         self.envs.close()
         self.writer.close()
+
+    def save_model(self, path):
+        torch.save(self.actor.state_dict(), "_".join([path,"actor.pth"]))
+        torch.save(self.critic.state_dict(), "_".join([path,"critic.pth"]))
+
+    # for testing only
+    def load_actor(self, path):
+        checkpoint = torch.load(path)
+        self.actor.load_state_dict(checkpoint)
+        self.actor.eval()
+
+    # for training only
+    def load_model(self, path, layers_to_freeze=[], layers_to_zero=[]):
+        actor = torch.load("_".join([path,"actor.pth"]))
+        critic = torch.load("_".join([path,"critic.pth"]))
+        self.actor.load_state_dict(actor)
+        self.critic.load_state_dict(critic)
+        self.actor.freeze(layers_to_freeze)
+        self.actor.reset(layers_to_zero)
+        self.critic.freeze(layers_to_freeze)
+        self.critic.reset(layers_to_zero)

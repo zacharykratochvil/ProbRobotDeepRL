@@ -5,12 +5,15 @@ import time
 
 import gym
 import numpy as np
+from pandas import Categorical
 import torch
 import torch.optim as optim
+from torch.distributions.categorical import Categorical
 import wandb
 
 from ppo_agent import PPOAgent
 import environment
+from environment.register import register
 
 def strtobool(string):
     if string in ["T","t","True","true"]:
@@ -27,6 +30,10 @@ def parse_args():
         help='the name of this experiment')
     parser.add_argument('--gym-id', type=str, default="TurtleRLEnv-v0",
         help='the id of the gym environment')
+    parser.add_argument('--reward_scheme', type=str, default="sparse",
+        help='sparse vs. dense')
+    parser.add_argument('--model', type=str, default="cnn",
+        help='cnn gives our cnn model, mini gives Yash\'s smaller cnn model')
     parser.add_argument('--learning-rate', type=float, default=2.5e-4,
         help='the learning rate of the optimizer')
     parser.add_argument('--seed', type=int, default=None,
@@ -49,6 +56,16 @@ def parse_args():
         help="the entity (team) of wandb's project")
     parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
         help='weather to capture videos of the agent performances (check out `videos` folder)')
+    parser.add_argument('--checkpoint-actor', type=str, default="",
+        help="the checkpoint of the model to load for testing, formerly just --checkpoint")
+    parser.add_argument('--checkpoint-model', type=str, default="",
+        help="the checkpoint of the model to load for training only. provide the filename root only, e.g. modelXX")
+    parser.add_argument('--frozen-layers', type=int, nargs="+", default=[],
+        help="layers in the checkpoint to freeze for transfer learning")
+    parser.add_argument('--zeroed-layers', type=int, nargs="+", default=[],
+        help="layers in the checkpoint to re-initialize")
+    parser.add_argument('--use-max', action="store_true", default=False,
+        help="whether to do exploration when testing, or always use the value maximizing policy, default is False: use exploration not max")
 
     # Algorithm specific arguments
     parser.add_argument('--num-envs', type=int, default=4,
@@ -72,7 +89,7 @@ def parse_args():
     parser.add_argument('--clip-coef', type=float, default=0.2,
         help="the surrogate clipping coefficient")
     parser.add_argument('--clip-vloss', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-        help='Toggles wheter or not to use a clipped loss for the value function, as per the paper.')
+        help='Toggles whether or not to use a clipped loss for the value function, as per the paper.')
     parser.add_argument('--ent-coef', type=float, default=0.01,
         help="coefficient of the entropy")
     parser.add_argument('--vf-coef', type=float, default=0.5,
@@ -82,14 +99,13 @@ def parse_args():
     parser.add_argument('--target-kl', type=float, default=None,
         help='the target KL divergence threshold')
     args = parser.parse_args()
-    args.batch_size = int(args.num_envs * args.num_steps)
-    args.minibatch_size = int(args.batch_size // args.num_minibatches)
-    # fmt: on
+    
     return args
 
-def make_env(seed, gym_id, idx, capture_video, gui, run_name):
+def make_env(seed, gym_id, idx, capture_video, gui, run_name, reward_scheme):
     def env_fn():
-        env = gym.make(gym_id, gui=gui)
+        register(gym_id)
+        env = gym.make(gym_id, gui=gui, reward_scheme=reward_scheme)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
@@ -101,22 +117,8 @@ def make_env(seed, gym_id, idx, capture_video, gui, run_name):
 
     return env_fn
 
-if __name__ == "__main__":
-    args = parse_args()
-    
+def main(args):
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    if args.track:
-        import wandb
-
-        wandb.init(
-            project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
-            config=vars(args),
-            name=run_name,
-            monitor_gym=True,
-            save_code=True,
-        )
 
     # TRY NOT TO MODIFY: seeding
     if type(args.seed) == type(None):
@@ -130,27 +132,74 @@ if __name__ == "__main__":
 
     # env setup
     envs = gym.vector.SyncVectorEnv(
-        [make_env(args.seed + i, args.gym_id, i, args.capture_video, args.gui, run_name) for i in range(args.num_envs)]
+        [make_env(args.seed + i, args.gym_id, i, args.capture_video, args.gui, run_name, args.reward_scheme) for i in range(args.num_envs)]
     )
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    # agent setup
-    agent = PPOAgent(args, envs, device)
-
+    # split the rest of initialization base on whether training or testing
     if args.train == True:
+        # finish computing arguments and validate
+        args.batch_size = int(args.num_envs * args.num_steps)
+        args.minibatch_size = int(args.batch_size // args.num_minibatches)
+        remainder = args.batch_size % args.minibatch_size
+        if remainder == 1:
+            raise Exception("Singleton minibatches not allowed. Choose a different number.")
+        if remainder != 0:
+            raise Warning("Stray minibatches. Consider choosing a number that goes in evenly.")
+        remainder = args.total_timesteps % args.batch_size
+        if remainder != 0:
+            raise Exception("Number of batches (steps*envs) must go in evenly to total timesteps.")
+
+        # weights and biases
+        if args.track:
+            import wandb
+
+            wandb.init(
+                project=args.wandb_project_name,
+                entity=args.wandb_entity,
+                sync_tensorboard=True,
+                config=vars(args),
+                name=run_name,
+                monitor_gym=True,
+                save_code=True,
+            )
+
+        # agent setup
+        args.model_dir = os.sep.join(["model",run_name])
+        os.makedirs(args.model_dir)
+
+        agent = PPOAgent(args, envs, args.model, device)
+        if args.checkpoint_model != "":
+            agent.load_model(args.checkpoint_model, args.frozen_layers, args.zeroed_layers)
+
         optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
         agent.train(args.num_steps, optimizer, run_name=run_name)
-        #agent.save_model("agent.pth")
     else:
-        agent.load_model()
+        if args.checkpoint_actor == "" or os.path.exists(args.checkpoint_actor) == False:
+            raise Exception("You must supply a model via the checkpoint argument if you are not training.")
 
-        '''
-        ob = env.reset()
+        agent = PPOAgent(args, envs, args.model, device)
+        agent.load_actor(args.checkpoint_actor)
+        
+        ob = torch.tensor(envs.reset()).to(device)
         while True:
-            action = agent(ob)
-            ob, _, done, _ = env.step(action)
-            env.render()
+
+            if args.use_max:
+                action = max(agent.actor(ob))
+            else:
+                action_dist = Categorical(logits=agent.actor(ob))
+                action = action_dist.sample()
+
+            ob, _, done, _ = envs.step(action)
+            ob = torch.tensor(ob).to(device)
+
             if done:
-                ob = env.reset()
+                ob = torch.tensor(envs.reset()).to(device)
                 time.sleep(1/30)
-        '''
+        
+
+if __name__ == "__main__":
+    args = parse_args()
+    
+    main(args)
+    

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot name="plane">
-    <material name="white">
-        <color rgba="237 237 237 0.6"/>
+    <material name="grey">
+        <color rgba="150 150 150 255"/>
     </material>
     <link name="base_link">
         <visual>

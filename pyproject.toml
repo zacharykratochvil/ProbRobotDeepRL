@@ -6,7 +6,7 @@ authors = ["bharatkesari, nikolasc1minelli <nikolasciminelli@gmail.com>, zachary
 
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.10"
-torch = "^1.7.1"
+torch = "^1.10.1"
 stable-baselines3 = "^1.1.0"
 tensorboard = "^2.5.0"
 wandb = "0.12.1"
@@ -14,6 +14,7 @@ pyglet = "^1.5.19"
 opencv-python = "^4.5.3"
 gym = "^0.23.0"
 pybullet = "^3.2"
+scipy = "^1.8.0"
 
 # Atari-related dependencies
 atari-py = {version = "0.2.6", optional = true}

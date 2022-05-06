@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot name="wall">
     <material name="white">
-        <color rgba="237 237 237 0.6"/>
+        <color rgba="237 237 237 255"/>
     </material>
     <link name="base_link">
         <visual>
             <geometry>
                 <box size="3.0 0.4 0.125"/>
             </geometry>
+            <origin rpy="0 0 0" xyz="0.0 0.2 0.0"/>
             <material name="white"/>
         </visual> 
         <collision>
             <geometry>
                 <box size="3.0 0.4 0.125"/>
             </geometry>
+            <origin rpy="0 0 0" xyz="0.0 0.2 0.0"/>
         </collision> 
         <inertial>
             <mass value="100.0"/>
