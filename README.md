@@ -1,6 +1,7 @@
 # ProbRobotDeepRL
 *Deep reinforcement learning project for our Probabilistic Robotics class at Tufts.*  
-Authors: Niko Ciminelli, Bharat Kesari, Zachary Kratochvil
+Authors: Niko Ciminelli*, Bharat Kesari*, Zachary Kratochvil*
+*All authors contributed equally to this work.
 
 ## About  
 This is code for our simulation of a ball-finding task with a Turtlebot.
@@ -18,14 +19,19 @@ then
 ` pip install -r requirements_pip.txt `
 
 ## Running Simulation from Pre-trained Model
-For simple task, use main__1__1651713571/model200_actor.pth
+Models are over 200MB each, so we do not provide them here, but we do provide a video called "learned_complex.mp4" If you do train a new model and wish to run it, run:
+(with poetry)  
+` poetry run python main.py --num-envs 1 --seed 1 --num-minibatches 1 --total-timesteps 500 --num-steps 50 --gui --checkpoint-actor [file]`  
+(without poetry)  
+` python main.py --num-envs 1 --seed 1 --num-minibatches 1 --total-timesteps 500 --num-steps 50 --gui --checkpoint-actor [file]`  
+either command must be followed by the actual path to the checkpoint file of the model you which you wish to load.
 
 ## Training
-To replicate the submitted video, run:  
+To train, run:  
 (with poetry)  
-` poetry run python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `  
+` poetry run python main.py --seed 1 --num-envs 1 --num-steps 300 --num-minibatches 3 --update-epochs 3 --total-timesteps 300000 --train --gym-id TurtleRLEnv-v0 --learning-rate 3e-4 --reward_scheme dense --gui `  
 (without poetry)  
-` python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `
+` poetry run python main.py --seed 1 --num-envs 1 --num-steps 300 --num-minibatches 3 --update-epochs 3 --total-timesteps 300000 --train --gym-id TurtleRLEnv-v0 --learning-rate 3e-4 --reward_scheme dense --gui `
 
 ## Transfer learning
 To perform transfer learning, use the arguments:  
