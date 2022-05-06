@@ -20,6 +20,10 @@ class PPOAgent(nn.Module):
             from model_mini import Model
             self.critic = Model(1)
             self.actor = Model(4)
+        elif model == "og":
+            from model import Model
+            self.critic = Model(1, 1.0)
+            self.actor = Model(4, .01)
 
         self.args = args
         self.envs = envs

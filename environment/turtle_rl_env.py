@@ -129,14 +129,14 @@ class TurtleRLEnv(gym.Env):
         gy = np.random.uniform(-1.1,1.1)
         goal_pos = (gx, gy)
 
-        #bx = gx; by = gy
-        #while (bx > gx - collision_radius and bx < gx + collision_radius
-        #        and by > by - collision_radius and by < by + collision_radius):
-        #    bx = np.random.uniform(-1,1)
-        #    by = np.random.uniform(-1,1)
-        bot_pos = [0, 0]
-        bot_angle = np.random.uniform(0,2*np.pi)
-        bot_ori = p.getQuaternionFromEuler((0,0,bot_angle))
+        bx = gx; by = gy
+        while (bx > gx - collision_radius and bx < gx + collision_radius
+                and by > by - collision_radius and by < by + collision_radius):
+            bx = np.random.uniform(-1,1)
+            by = np.random.uniform(-1,1)
+        bot_pos = [bx, by]
+        #bot_angle = np.random.uniform(0,2*np.pi)
+        #bot_ori = p.getQuaternionFromEuler((0,0,bot_angle))
 
         ## for testing the reward function
         #goal_pos = (bx + .5, by)
@@ -146,7 +146,7 @@ class TurtleRLEnv(gym.Env):
         self.goal = Ball(self.client, goal_pos)
 
         bot_pos.append(0)
-        self.bot.teleport(bot_pos,bot_ori)
+        #self.bot.teleport(bot_pos,bot_ori)
 
         # Get observation to return
         pos, ori, vel = self.bot.get_observation()
