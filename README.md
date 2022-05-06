@@ -15,7 +15,7 @@ then
 If that fails, try using conda and pip, which works with the A100 GPU with Python 3.9.0.  
 ` conda install --file requirements_conda.txt -c pytorch `  
 then  
-` pip install l -r requirements_pip.txt `
+` pip install -r requirements_pip.txt `
 
 ## Running Simulation from Pre-trained Model
 For simple task, use main__1__1651713571/model200_actor.pth
@@ -29,7 +29,8 @@ To replicate the submitted video, run:
 
 ## Evaluating
 To generate the loss curve and other plots after a round of training, run:  
-` tensorboard --logdir runs `
+` tensorboard --logdir runs `  
+note you may need to add ` --bind_all ` to run on a remote machine.
 
 ## Additional Information
 Note: We only use the simulator to
@@ -40,7 +41,9 @@ actions in our robot so we best simulate this by teleporting.
 For latest version: https://github.com/zacharykratochvil/ProbRobotDeepRL
 
 ## Built using:
+* https://medium.com/@gerardmaggiolino/creating-openai-gym-environments-with-pybullet-part-1-13895a622b24
 * https://github.com/GerardMaggiolino/TRPO-Implementation
 * https://github.com/erwincoumans/pybullet_robots
 * https://github.com/ericyangyu/PPO-for-Beginners
 * https://arxiv.org/abs/1707.06347
+* https://www.youtube.com/watch?v=MEt6rrxH8W4
