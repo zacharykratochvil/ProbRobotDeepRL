@@ -27,6 +27,11 @@ To replicate the submitted video, run:
 (without poetry)  
 ` python main.py --num-envs 1 --train --seed 1 --total-timesteps 500 --num-steps 50 --gui `
 
+## Transfer learning
+To perform transfer learning, use the arguments:  
+` checkpoint-model `, ` --frozen-layers 0 3 `, and ` --zeroed-layers 7 9 11 `  
+for example to freeze the convolutional layers and re-initialize the fully connected ones.
+
 ## Evaluating
 To generate the loss curve and other plots after a round of training, run:  
 ` tensorboard --logdir runs `  
